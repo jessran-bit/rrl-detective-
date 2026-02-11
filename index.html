@@ -7,7 +7,10 @@
   <style>
     :root{
       --bg:#f4f6f9; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
-      --accent:#111827; --warn:#fffbeb; --warnLine:#f59e0b; --ok:#ecfdf5; --okLine:#10b981;
+      --accent:#111827;
+      --ok:#ecfdf5; --okLine:#10b981;
+      --mid:#eff6ff; --midLine:#3b82f6;
+      --warn:#fffbeb; --warnLine:#f59e0b;
       --bad:#fef2f2; --badLine:#ef4444;
     }
     *{box-sizing:border-box}
@@ -48,17 +51,23 @@
     .callout b{font-size:13px}
     .callout ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:13px}
     .callout li{margin:4px 0}
+
     .miniDef{
       border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;
       display:grid;gap:10px;
     }
     .miniDef .def{font-size:12px;color:var(--muted);line-height:1.45}
-    .tag{font-size:11px;padding:3px 7px;border-radius:999px;background:#f3f4f6;color:var(--ink);display:inline-block;margin-right:6px;margin-top:6px}
+    .tag{
+      font-size:11px;padding:3px 7px;border-radius:999px;background:#f3f4f6;color:var(--ink);
+      display:inline-block;margin-right:6px;margin-top:6px
+    }
 
     .twistBox{display:none;margin-top:10px;border:1px solid var(--warnLine);background:var(--warn);padding:10px 12px;border-radius:12px}
     .twistBox.show{display:block}
 
-    .evidenceTray{min-height:120px;display:flex;flex-wrap:wrap;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+    .evidenceTray{
+      min-height:120px;display:flex;flex-wrap:wrap;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff
+    }
     .card{
       width:240px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;
       cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.06);user-select:none;position:relative;
@@ -102,23 +111,29 @@
     .tinyNote{font-size:11px;color:var(--muted);margin-top:8px}
 
     .instructor{
-      display:none;
-      border:1px solid var(--line);
-      border-left:6px solid var(--accent);
-      border-radius:12px;
-      padding:12px;
-      background:#fff;
-      margin-top:12px;
+      display:none;border:1px solid var(--line);border-left:6px solid var(--accent);
+      border-radius:12px;padding:12px;background:#fff;margin-top:12px;
     }
     .instructor.show{display:block}
+
+    .statusPill{display:inline-block;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line)}
+    .status-green{background:var(--ok);border-color:var(--okLine)}
+    .status-blue{background:var(--mid);border-color:var(--midLine)}
+    .status-yellow{background:var(--warn);border-color:var(--warnLine)}
+    .status-red{background:var(--bad);border-color:var(--badLine)}
+
     table{border-collapse:collapse;width:100%;font-size:12px}
     th,td{border:1px solid var(--line);padding:8px;vertical-align:top}
     th{background:#f3f4f6;text-align:left}
-    .okRow{background:var(--ok)}
-    .badRow{background:var(--bad)}
-    .pillMini{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;background:#e5e7eb}
+
+    .analyticsGrid{display:grid;gap:10px;grid-template-columns:repeat(3, 1fr)}
+    @media (max-width:980px){.analyticsGrid{grid-template-columns:1fr}}
+    .analyticsCard{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+    .analyticsCard b{display:block;margin-bottom:6px}
+    .muted{color:var(--muted)}
   </style>
 </head>
+
 <body>
 <header>
   <div class="row">
@@ -139,29 +154,36 @@
       <p>Click once. The 20-minute timer starts as soon as the case loads. The twist unlocks <b>5 minutes after the case starts</b>.</p>
 
       <div style="display:grid; gap:10px;">
-        <input id="teamName" type="text" placeholder="Team name (required for best tracking)" />
+        <input id="teamName" type="text" placeholder="Team name (required)" />
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="primary" id="randCaseBtn" onclick="assignRandomCase()">🎲 Load Random Case (6 cases)</button>
           <button class="secondary" onclick="resetAll()">Reset</button>
           <button class="secondary" onclick="toggleInstructor()">Instructor Dashboard</button>
         </div>
       </div>
-      <div class="tinyNote">Each case has <b>15 evidence cards</b> (twist adds 2 more).</div>
+      <div class="tinyNote">Each case has <b>15 evidence cards</b> (twist adds 2).</div>
 
       <!-- Instructor dashboard -->
       <div class="instructor" id="instructorPanel">
         <h3>Instructor Dashboard</h3>
-        <p>Students paste their <b>Submission Code</b> into your chat/LMS. Copy all codes and paste them here (one per line) to generate a table and download a CSV.</p>
-        <textarea id="codesInput" placeholder="Paste submission codes here, one per line..."></textarea>
+        <p>Paste student submissions here (codes can be wrapped). Click <b>Parse</b> to build a table and analytics summary.</p>
+        <textarea id="codesInput" placeholder="Paste everything here (chat exports are OK)."></textarea>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-          <button class="primary" onclick="parseCodes()">Parse Codes</button>
+          <button class="primary" onclick="parseCodes()">Parse</button>
           <button class="secondary" onclick="downloadCSV()">Download CSV</button>
           <button class="danger" onclick="clearInstructor()">Clear</button>
         </div>
-        <div class="tinyNote">Tip: Ask students to submit in this format: <span class="mono">TEAM NAME + Submission Code</span></div>
+
         <div id="parseSummary" class="tinyNote" style="margin-top:8px;"></div>
+
+        <div class="analyticsGrid" style="margin-top:10px;" id="analyticsGrid"></div>
+
         <div style="margin-top:10px; overflow:auto;">
           <table id="resultsTable"></table>
+        </div>
+
+        <div class="tinyNote" style="margin-top:8px;">
+          Tip: ask students to submit: <span class="mono">TEAM | Submission Code</span>
         </div>
       </div>
 
@@ -268,6 +290,11 @@
       <h3 style="margin-top:12px;">Gap Type(s)</h3>
       <div class="choices" id="gapChoices"></div>
 
+      <div class="callout" id="preSubmitCheck" style="margin-top:12px; display:none;">
+        <b>Pre-Submit Sense Check</b>
+        <div class="small" id="preSubmitBody" style="margin-top:6px;"></div>
+      </div>
+
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
         <button class="primary" onclick="submit()" id="submitBtn" disabled>Submit</button>
         <button class="secondary" onclick="hint()">Hint</button>
@@ -282,7 +309,7 @@
 <script>
 /** ========= Timing ========= */
 const TOTAL_SECONDS = 20 * 60;
-// Twist unlocks AFTER 5 minutes (elapsed) from case load
+// twist unlocks AFTER 5 minutes elapsed
 const TWIST_UNLOCK_AFTER_ELAPSED = 5 * 60;
 
 let remaining = TOTAL_SECONDS;
@@ -299,7 +326,10 @@ let gapTypePicks = new Set();
 let pinned = new Set();
 let score = 0;
 
-/** ========= Cases (6 cases, each with 15 evidence) ========= */
+/** ========= Cases (balanced) =========
+ * Per case (15 cards): 5 claimA, 5 claimB, 3 boundary, 2 methods
+ * Twist (2): 1 boundary, 1 methods
+ */
 const CASES = [
   {
     id: "socialmedia",
@@ -311,30 +341,38 @@ const CASES = [
     answerKey: "MIXED_DEPENDS",
     gapKey: ["CONTEXTUAL","METHODOLOGICAL"],
     cards: [
+      // Claim A (5)
       { id:"SM1",  title:"Study (College Survey)", text:"Higher daily use correlates with lower GPA.", roles:["claimA"], gapHints:["METHODOLOGICAL"], meta:["Cross-sectional correlation"] },
-      { id:"SM2",  title:"Study (Time vs Purpose)", text:"Screen time predicts little unless purpose is specified.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Measure too broad"] },
-      { id:"SM3",  title:"Study (Passive vs Active)", text:"Passive scrolling predicts poorer outcomes; active academic networking is neutral/positive.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Mechanism + boundary"] },
-      { id:"SM4",  title:"Study (Different Platforms)", text:"Effects differ across platforms; short-video use shows stronger distraction signals.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Platform context"] },
-      { id:"SM5",  title:"Study (Private Universities)", text:"No significant link found in private universities in one sample.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Setting-specific"] },
-      { id:"SM6",  title:"Study (High School Samples)", text:"Many findings are from high school; transfer to college is unclear.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Population mismatch"] },
-      { id:"SM7",  title:"Study (Sleep)", text:"Sleep disruption may mediate the relationship but is rarely tested directly.", roles:["methods"], gapHints:["THEORETICAL"], meta:["Mechanism not tested"] },
-      { id:"SM8",  title:"Study (Attention)", text:"Attention and multitasking are proposed mechanisms, but measures are inconsistent.", roles:["methods"], gapHints:["THEORETICAL","METHODOLOGICAL"], meta:["Weak/varied measures"] },
-      { id:"SM9",  title:"Study (Pandemic Shift)", text:"Usage patterns changed after remote learning; old findings may not hold.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Time/context shift"] },
-      { id:"SM10", title:"Study (Self-report Bias)", text:"Most studies use self-reported screen time; reliability concerns.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Measurement validity"] },
-      { id:"SM11", title:"Study (Academic Self-control)", text:"Self-control moderates effects; high self-control reduces negative outcomes.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Moderator"] },
-      { id:"SM12", title:"Study (Time-on-task)", text:"Time-on-task decreases when notifications are frequent.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
-      { id:"SM13", title:"Study (Mixed Findings)", text:"Across studies, effect sizes vary widely; some show near-zero effects.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Heterogeneity"] },
-      { id:"SM14", title:"Study (Design Limitation)", text:"Most studies are one-time surveys; causality remains unclear.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need stronger designs"] },
-      { id:"SM15", title:"Study (Intervention)", text:"Notification reduction improves focus in a small trial.", roles:["claimA","methods"], gapHints:["METHODOLOGICAL"], meta:["Small sample"] },
+      { id:"SM2",  title:"Study (Notifications)", text:"Frequent notifications reduce time-on-task during study sessions.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Attention disruption clue"] },
+      { id:"SM3",  title:"Study (Late-night Use)", text:"Late-night social media use predicts shorter sleep and lower quiz scores.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Sleep pathway clue"] },
+      { id:"SM4",  title:"Study (Multitasking)", text:"Students who multitask with social media during lectures score lower on recall tests.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Multitasking cost"] },
+      { id:"SM5",  title:"Study (Small Intervention)", text:"A notification-reduction intervention improves focus and assignment completion.", roles:["claimA"], gapHints:["METHODOLOGICAL"], meta:["Small trial; short follow-up"] },
+
+      // Claim B (5)
+      { id:"SM6",  title:"Study (No Link)", text:"In one sample, overall screen time shows no significant association with GPA.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Null result"] },
+      { id:"SM7",  title:"Study (Academic Use)", text:"Using social media for academic groups is associated with higher course engagement.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Resource/engagement pathway"] },
+      { id:"SM8",  title:"Study (Active Networking)", text:"Active academic networking is neutral or positive for performance compared with passive scrolling.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Use-type matters"] },
+      { id:"SM9",  title:"Study (High Self-control)", text:"High self-control students show little to no negative effect from social media use.", roles:["claimB"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Moderator"] },
+      { id:"SM10", title:"Study (Platform Variation)", text:"Effects differ across platforms; some platform use is unrelated to grades.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Platform differences"] },
+
+      // Boundary/Context (3)
+      { id:"SM11", title:"Boundary (Passive vs Active)", text:"Studies define 'use' differently (passive scrolling vs active posting), which can change conclusions.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Definition boundary"] },
+      { id:"SM12", title:"Boundary (Time Period)", text:"Platform features changed after remote learning; older results may not reflect today’s usage.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Time/context shift"] },
+      { id:"SM13", title:"Boundary (Population)", text:"Many studies use high school samples; transfer to college contexts is uncertain.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Population mismatch"] },
+
+      // Methods (2)
+      { id:"SM14", title:"Method (Self-report)", text:"Most studies rely on self-reported screen time; measurement reliability is a concern.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Validity concern"] },
+      { id:"SM15", title:"Method (Causality)", text:"Many designs are one-time surveys, so causal direction remains unclear.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need stronger designs"] },
     ],
     twist: {
-      text: "New synthesis: effects are strongly driven by engagement type and study quality.",
+      text: "New evidence arrives: stronger designs and refined definitions change how we interpret the pattern.",
       cards: [
-        { id:"TSM1", title:"Twist (Meta-analysis)", text:"Overall effects are small-to-moderate but highly variable by engagement type.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Heterogeneity"] },
-        { id:"TSM2", title:"Twist (Design Quality)", text:"Longitudinal designs show different patterns than cross-sectional surveys.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Design quality"] },
+        { id:"TSM1", title:"Twist (Boundary: Engagement Type)", text:"A synthesis shows effects vary strongly by engagement type (passive vs active).", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Explains mixed findings"] },
+        { id:"TSM2", title:"Twist (Method: Longitudinal)", text:"Longitudinal studies show different patterns than cross-sectional surveys.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Design quality matters"] },
       ]
     }
   },
+
   {
     id: "digitalbank",
     title: "Case 2: Digital Loan Apps & Financial Inclusion",
@@ -345,30 +383,38 @@ const CASES = [
     answerKey: "BOTH_TRUE_PROCESS_GAP",
     gapKey: ["METHODOLOGICAL","CONTEXTUAL"],
     cards: [
-      { id:"DB1",  title:"Study (Access Benefit)", text:"Digital lending expands access among previously unbanked applicants.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Who benefits: unbanked"] },
-      { id:"DB2",  title:"Study (KYC Drop-off)", text:"Large drop-off occurs during document upload steps.", roles:["claimB","boundary"], gapHints:["METHODOLOGICAL"], meta:["Process bottleneck"] },
-      { id:"DB3",  title:"Study (Digital Literacy)", text:"Lower digital literacy predicts incomplete applications.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Skill barrier"] },
-      { id:"DB4",  title:"Study (Connectivity)", text:"Low connectivity users are less likely to finish onboarding.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Infrastructure barrier"] },
-      { id:"DB5",  title:"Study (Outcome-only)", text:"Studies report approval rates but not reasons for abandonment.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Missing process evidence"] },
-      { id:"DB6",  title:"Study (Rural vs Urban Missing)", text:"Few studies compare rural and urban applicants.", roles:["methods","boundary"], gapHints:["CONTEXTUAL"], meta:["Context comparison missing"] },
-      { id:"DB7",  title:"Study (Fees/Hidden Costs)", text:"Some users drop out due to perceived hidden fees/unclear terms.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Trust + comprehension"] },
-      { id:"DB8",  title:"Study (Trust)", text:"Trust predicts completion; distrust increases abandonment.", roles:["claimB","boundary"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
-      { id:"DB9",  title:"Study (Assisted Onboarding)", text:"Agent-assisted onboarding improves completion.", roles:["claimA","boundary"], gapHints:["CONTEXTUAL"], meta:["Hybrid support"] },
-      { id:"DB10", title:"Study (Bias Risk)", text:"Automated scoring may underpredict for informal workers.", roles:["claimB","methods"], gapHints:["METHODOLOGICAL","CONTEXTUAL"], meta:["Data bias"] },
-      { id:"DB11", title:"Study (ID Requirement)", text:"Applicants without IDs cannot proceed.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Policy constraint"] },
-      { id:"DB12", title:"Study (Journey Mapping Rare)", text:"Few papers map the full user journey end-to-end.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need process mapping"] },
-      { id:"DB13", title:"Study (Financial Literacy)", text:"Lower financial literacy predicts confusion and drop-off.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Capability barrier"] },
-      { id:"DB14", title:"Study (Unequal Completion)", text:"Approval rises, but completion differs by income group.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Uneven inclusion"] },
-      { id:"DB15", title:"Study (Mechanism Gap)", text:"Few test how policy interacts with literacy/connectivity.", roles:["methods"], gapHints:["THEORETICAL"], meta:["Interaction mechanisms"] },
+      // Claim A (5)
+      { id:"DB1",  title:"Study (Access Expansion)", text:"Digital lending expands access among previously unbanked applicants.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Who benefits: unbanked"] },
+      { id:"DB2",  title:"Study (Faster Decisions)", text:"App-based processing reduces waiting time and increases completed applications.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Convenience pathway"] },
+      { id:"DB3",  title:"Study (Lower Transaction Costs)", text:"Applicants report lower transport and paperwork costs compared with in-branch applications.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Cost barrier reduced"] },
+      { id:"DB4",  title:"Study (Assisted Onboarding)", text:"Agent-assisted onboarding improves completion rates for first-time users.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Support matters"] },
+      { id:"DB5",  title:"Study (Micro-loans Uptake)", text:"Micro-loan uptake increases in communities with limited bank branches.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Branch scarcity context"] },
+
+      // Claim B (5)
+      { id:"DB6",  title:"Study (KYC Drop-off)", text:"Large drop-off occurs during ID/document upload steps.", roles:["claimB"], gapHints:["METHODOLOGICAL"], meta:["Process bottleneck"] },
+      { id:"DB7",  title:"Study (Digital Literacy)", text:"Lower digital literacy predicts incomplete applications.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Skill barrier"] },
+      { id:"DB8",  title:"Study (Connectivity)", text:"Low connectivity users are less likely to finish onboarding.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Infrastructure barrier"] },
+      { id:"DB9",  title:"Study (Hidden Costs/Terms)", text:"Some users abandon applications due to unclear terms and perceived hidden fees.", roles:["claimB"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Trust/comprehension"] },
+      { id:"DB10", title:"Study (Algorithmic Underscoring)", text:"Automated scoring may underpredict for informal workers, increasing rejection risk.", roles:["claimB"], gapHints:["METHODOLOGICAL","CONTEXTUAL"], meta:["Data bias risk"] },
+
+      // Boundary (3)
+      { id:"DB11", title:"Boundary (Rural vs Urban)", text:"Evidence is limited on rural-versus-urban differences in completion and approval.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Missing comparison"] },
+      { id:"DB12", title:"Boundary (Policy Constraints)", text:"Strict ID/KYC requirements can exclude users without documentation.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Policy boundary"] },
+      { id:"DB13", title:"Boundary (Support Availability)", text:"Outcomes differ where community support or agents are available versus self-service only.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Support boundary"] },
+
+      // Methods (2)
+      { id:"DB14", title:"Method (Outcome-only)", text:"Many studies report approval outcomes but not where applicants drop off and why.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Missing process-level evidence"] },
+      { id:"DB15", title:"Method (Journey Mapping Rare)", text:"Few studies map the user journey end-to-end with step-by-step data.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need funnel/journey data"] },
     ],
     twist: {
-      text: "Policy update: stricter KYC increases abandonment among low-income applicants.",
+      text: "A policy change and a UX intervention arrive mid-game. Re-check your synthesis.",
       cards: [
-        { id:"TDB1", title:"Twist (Policy Change)", text:"Stricter KYC correlates with higher abandonment among low-income users.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Policy-context interaction"] },
-        { id:"TDB2", title:"Twist (Guided Help)", text:"In-app guided help reduces abandonment for low-literacy users.", roles:["claimA","boundary"], gapHints:["METHODOLOGICAL","CONTEXTUAL"], meta:["Intervention clue"] },
+        { id:"TDB1", title:"Twist (Boundary: Policy Tightening)", text:"Stricter KYC rules increase abandonment among low-income applicants.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Policy-context interaction"] },
+        { id:"TDB2", title:"Twist (Method: In-app Guidance Study)", text:"A field experiment shows guided help reduces abandonment for low-literacy users.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Stronger design evidence"] },
       ]
     }
   },
+
   {
     id: "remotework",
     title: "Case 3: Remote Work & Productivity",
@@ -379,30 +425,38 @@ const CASES = [
     answerKey: "MIXED_DEPENDS",
     gapKey: ["CONTEXTUAL","METHODOLOGICAL"],
     cards: [
-      { id:"RW1",  title:"Study (Output Metrics)", text:"Some teams show higher output after going remote.", roles:["claimA"], gapHints:["METHODOLOGICAL"], meta:["Metric choice"] },
-      { id:"RW2",  title:"Study (Role Specificity)", text:"Knowledge workers report better focus; not generalizable to all roles.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Role boundary"] },
-      { id:"RW3",  title:"Study (Collaboration)", text:"Collaboration quality declines without coordination routines.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Coordination mechanism"] },
-      { id:"RW4",  title:"Study (Home Setup)", text:"Benefits appear only when home workspace is adequate.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Home environment"] },
-      { id:"RW5",  title:"Study (Care Load)", text:"Care responsibilities reduce productivity for some groups.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Household context"] },
-      { id:"RW6",  title:"Study (Self-report)", text:"Many studies rely on self-reported productivity.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Measurement bias"] },
-      { id:"RW7",  title:"Study (Pandemic Context)", text:"Lockdown studies may not represent normal remote work.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Exceptional conditions"] },
-      { id:"RW8",  title:"Study (Manager Support)", text:"Supervisor support predicts better remote performance.", roles:["claimB","boundary"], gapHints:["THEORETICAL"], meta:["Resource mechanism"] },
-      { id:"RW9",  title:"Study (Autonomy vs Monitoring)", text:"Autonomy helps; heavy monitoring worsens outcomes.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Control mechanism"] },
-      { id:"RW10", title:"Study (Missing Comparisons)", text:"Few compare remote vs hybrid vs onsite within the same firm.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Comparison gap"] },
-      { id:"RW11", title:"Study (Turnover)", text:"Remote reduces turnover intention for some employees.", roles:["claimA","boundary"], gapHints:["CONTEXTUAL"], meta:["Outcome differs by metric"] },
-      { id:"RW12", title:"Study (Team Norms)", text:"Clear norms improve outcomes (core hours, response rules).", roles:["claimA","boundary"], gapHints:["THEORETICAL"], meta:["Mechanism: norms"] },
-      { id:"RW13", title:"Study (Task Interdependence)", text:"Highly interdependent tasks face more coordination loss.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Task structure"] },
-      { id:"RW14", title:"Study (Causality)", text:"Few quasi-experimental designs; causality unclear.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need stronger design"] },
-      { id:"RW15", title:"Study (Unequal Access)", text:"Benefits are uneven by job level and resource access.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Equity boundary"] },
+      // Claim A (5)
+      { id:"RW1",  title:"Study (Output Increase)", text:"Some teams show higher output after going remote.", roles:["claimA"], gapHints:["METHODOLOGICAL"], meta:["Output metric used"] },
+      { id:"RW2",  title:"Study (Fewer Commute Hours)", text:"Reduced commuting time is associated with more time for work tasks.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Time reallocation"] },
+      { id:"RW3",  title:"Study (Focus Gains)", text:"Employees report fewer interruptions and better focus at home.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Focus pathway"] },
+      { id:"RW4",  title:"Study (Turnover Intention)", text:"Remote options reduce turnover intention in some groups.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Outcome differs by metric"] },
+      { id:"RW5",  title:"Study (Norms Help)", text:"Clear team norms (core hours, response rules) improve remote performance.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Mechanism: norms"] },
+
+      // Claim B (5)
+      { id:"RW6",  title:"Study (Coordination Loss)", text:"Collaboration quality declines without coordination routines.", roles:["claimB"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Coordination cost"] },
+      { id:"RW7",  title:"Study (Interdependence)", text:"Highly interdependent tasks face more delays and rework when remote.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Task structure"] },
+      { id:"RW8",  title:"Study (Home Constraints)", text:"Crowded or noisy homes are linked to lower productivity.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Home environment"] },
+      { id:"RW9",  title:"Study (Care Load)", text:"Care responsibilities reduce productivity for some workers.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Household context"] },
+      { id:"RW10", title:"Study (Monitoring Backfires)", text:"Heavy monitoring reduces autonomy and is linked to lower performance.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Control mechanism"] },
+
+      // Boundary (3)
+      { id:"RW11", title:"Boundary (Role Differences)", text:"Results differ by role type (knowledge work vs frontline/coordination-heavy roles).", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Role boundary"] },
+      { id:"RW12", title:"Boundary (Pandemic Context)", text:"Lockdown findings may not represent normal remote work arrangements.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Exceptional conditions"] },
+      { id:"RW13", title:"Boundary (Support Resources)", text:"Outcomes depend on tools, IT support, and managerial practices.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Resource boundary"] },
+
+      // Methods (2)
+      { id:"RW14", title:"Method (Self-report)", text:"Many studies rely on self-reported productivity rather than objective metrics.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Measurement bias"] },
+      { id:"RW15", title:"Method (Comparisons Missing)", text:"Few studies compare remote vs hybrid vs onsite within the same firm.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need cleaner comparisons"] },
     ],
     twist: {
-      text: "New evidence: strong coordination systems predict sustained productivity gains.",
+      text: "New evidence focuses on time dynamics and design quality.",
       cards: [
-        { id:"TRW1", title:"Twist (Systems)", text:"Tools + routines predict better outcomes over time.", roles:["claimA","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Boundary: systems"] },
-        { id:"TRW2", title:"Twist (Longitudinal)", text:"Initial productivity spike may fade without support.", roles:["claimB","methods"], gapHints:["METHODOLOGICAL"], meta:["Time dynamics"] },
+        { id:"TRW1", title:"Twist (Boundary: Time Effects)", text:"Productivity gains appear early but fade without ongoing coordination support.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Time boundary"] },
+        { id:"TRW2", title:"Twist (Method: Quasi-experiment)", text:"A quasi-experimental study shows smaller effects than surveys suggest.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Design quality"] },
       ]
     }
   },
+
   {
     id: "ai_learning",
     title: "Case 4: AI Tools & Student Learning",
@@ -413,30 +467,38 @@ const CASES = [
     answerKey: "MIXED_DEPENDS",
     gapKey: ["THEORETICAL","METHODOLOGICAL"],
     cards: [
+      // Claim A (5)
       { id:"AI1",  title:"Study (Practice Support)", text:"AI tutoring increases practice frequency and short-term scores.", roles:["claimA"], gapHints:["METHODOLOGICAL"], meta:["Short-term outcomes"] },
-      { id:"AI2",  title:"Study (Copying)", text:"Students copy AI answers; grades improve but understanding is unclear.", roles:["claimB","methods"], gapHints:["THEORETICAL","METHODOLOGICAL"], meta:["Mechanism unclear"] },
-      { id:"AI3",  title:"Study (Prompt Skill)", text:"Better prompting predicts better outputs; not all students benefit equally.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Skill differences"] },
-      { id:"AI4",  title:"Study (Metacognition Missing)", text:"Few studies measure metacognition/self-regulation changes.", roles:["methods"], gapHints:["THEORETICAL"], meta:["Missing mechanisms"] },
-      { id:"AI5",  title:"Study (Feedback Use)", text:"AI feedback helps when students revise; harms when unchanged submission occurs.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Use pattern"] },
-      { id:"AI6",  title:"Study (Integrity Policies)", text:"Policy strictness changes behavior and outcomes.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Policy context"] },
-      { id:"AI7",  title:"Study (Retention Rare)", text:"Long-term retention outcomes are rarely reported.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Missing long-term evidence"] },
-      { id:"AI8",  title:"Study (Small Trial)", text:"Small trial shows gains, but sample limited.", roles:["claimA","methods"], gapHints:["METHODOLOGICAL"], meta:["Low generalizability"] },
-      { id:"AI9",  title:"Study (Teacher Scaffolding)", text:"Structured guidance outperforms unrestricted use.", roles:["claimB","boundary"], gapHints:["THEORETICAL"], meta:["Mechanism: scaffolding"] },
-      { id:"AI10", title:"Study (Access Inequality)", text:"Students with lower device/access benefit less.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Equity"] },
-      { id:"AI11", title:"Study (Cognitive Load)", text:"AI reduces cognitive load; may reduce productive struggle.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
-      { id:"AI12", title:"Study (Process Missing)", text:"Many measure grades but not how students worked.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Process gap"] },
-      { id:"AI13", title:"Study (Discipline Differences)", text:"Effects differ by discipline (writing vs math vs coding).", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Domain boundary"] },
-      { id:"AI14", title:"Study (Usage Underreport)", text:"Students underreport AI use; data quality concern.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Reporting bias"] },
-      { id:"AI15", title:"Study (Mechanism Gap)", text:"Few test whether AI improves understanding vs performance.", roles:["methods"], gapHints:["THEORETICAL","METHODOLOGICAL"], meta:["Key mechanism unknown"] },
+      { id:"AI2",  title:"Study (Feedback Speed)", text:"Students receive faster feedback and complete more revisions with AI support.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Feedback loop"] },
+      { id:"AI3",  title:"Study (Writing Quality)", text:"AI-assisted drafting improves clarity and structure in student writing.", roles:["claimA"], gapHints:["METHODOLOGICAL"], meta:["Rubric-based scoring"] },
+      { id:"AI4",  title:"Study (Scaffolded Use)", text:"Structured AI activities (prompt + reflect) improve quiz performance.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Scaffolding effect"] },
+      { id:"AI5",  title:"Study (Study Planning)", text:"AI study planners increase on-time submission and planning behaviors.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Self-regulation support"] },
+
+      // Claim B (5)
+      { id:"AI6",  title:"Study (Copying Risk)", text:"Some students copy AI answers; grades rise but understanding is unclear.", roles:["claimB"], gapHints:["THEORETICAL","METHODOLOGICAL"], meta:["Mechanism unclear"] },
+      { id:"AI7",  title:"Study (Reduced Struggle)", text:"AI reduces cognitive load and may reduce productive struggle needed for mastery.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Learning mechanism"] },
+      { id:"AI8",  title:"Study (Unguided Use)", text:"Unrestricted AI use increases shortcut behaviors and shallow revisions.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Use pattern"] },
+      { id:"AI9",  title:"Study (Equity)", text:"Students with weaker access/devices benefit less from AI tools.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Access inequality"] },
+      { id:"AI10", title:"Study (Policy Anxiety)", text:"Strict integrity policies increase anxiety and reduce help-seeking.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Policy context"] },
+
+      // Boundary (3)
+      { id:"AI11", title:"Boundary (Discipline)", text:"Effects differ by task type (writing, math, coding) and assessment format.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Domain boundary"] },
+      { id:"AI12", title:"Boundary (Prompt Skill)", text:"Outcomes depend on students’ prompting skill and metacognitive habits.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Skill boundary"] },
+      { id:"AI13", title:"Boundary (Teacher Scaffolding)", text:"Guided classroom use performs differently than independent, out-of-class use.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Setting boundary"] },
+
+      // Methods (2)
+      { id:"AI14", title:"Method (Process Missing)", text:"Many studies measure grades but not how students actually used AI while working.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Process data missing"] },
+      { id:"AI15", title:"Method (Retention Rare)", text:"Long-term retention outcomes are rarely reported.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need longer follow-up"] },
     ],
     twist: {
-      text: "New evidence: guided AI use improves retention; unguided use increases shortcut behavior.",
+      text: "New evidence: logs and stronger methods change conclusions.",
       cards: [
-        { id:"TAI1", title:"Twist (Guided vs Unguided)", text:"Guided use improves retention; unguided increases copying.", roles:["claimB","boundary"], gapHints:["THEORETICAL","METHODOLOGICAL"], meta:["Mechanism + design"] },
-        { id:"TAI2", title:"Twist (Log Data)", text:"Log-data reveals different learning paths than surveys.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Better measurement"] },
+        { id:"TAI1", title:"Twist (Boundary: Guided vs Unguided)", text:"Guided use shows better retention than unguided use.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Condition boundary"] },
+        { id:"TAI2", title:"Twist (Method: Log Data)", text:"Log-data reveals different learning paths than surveys report.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Better measurement"] },
       ]
     }
   },
+
   {
     id: "hybrid_wellbeing",
     title: "Case 5: Hybrid Work & Employee Well-being",
@@ -447,30 +509,38 @@ const CASES = [
     answerKey: "MIXED_DEPENDS",
     gapKey: ["THEORETICAL","CONTEXTUAL"],
     cards: [
+      // Claim A (5)
       { id:"HW1",  title:"Study (Flexibility)", text:"Flexibility predicts higher well-being in multiple samples.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Resource clue"] },
-      { id:"HW2",  title:"Study (Boundary Blurring)", text:"Work-home boundary blurring predicts stress/burnout.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
-      { id:"HW3",  title:"Study (Care Responsibilities)", text:"Care demands moderate outcomes; some report higher strain.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Family context"] },
-      { id:"HW4",  title:"Study (Manager Support)", text:"Supportive leadership reduces strain and improves well-being.", roles:["claimB","boundary"], gapHints:["THEORETICAL"], meta:["Resource mechanism"] },
-      { id:"HW5",  title:"Study (Isolation)", text:"Isolation increases for some remote-heavy schedules.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Schedule boundary"] },
-      { id:"HW6",  title:"Study (Autonomy)", text:"Autonomy predicts engagement and satisfaction.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
-      { id:"HW7",  title:"Study (Workload Cancels Benefits)", text:"High workload cancels flexibility benefits.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Interaction"] },
-      { id:"HW8",  title:"Study (Unequal Unpaid Work)", text:"Household structure shapes experiences; outcomes differ.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Population boundary"] },
-      { id:"HW9",  title:"Study (Cross-sectional)", text:"Most studies cross-sectional; mechanisms uncertain.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Design limitation"] },
-      { id:"HW10", title:"Study (Measure Variability)", text:"Well-being measures vary; comparability limited.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Inconsistent measures"] },
-      { id:"HW11", title:"Study (Policy Differences)", text:"Different firm policies make comparisons difficult.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Policy context"] },
-      { id:"HW12", title:"Study (Resource Quality)", text:"Quality of resources matters more than presence.", roles:["claimB","methods"], gapHints:["THEORETICAL"], meta:["Quality mechanism"] },
-      { id:"HW13", title:"Study (Boundary Strategies)", text:"Personal strategies reduce conflict and improve well-being.", roles:["claimA","boundary"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
-      { id:"HW14", title:"Study (Sector Bias)", text:"Many samples from tech/education; other sectors under-studied.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Context missing"] },
-      { id:"HW15", title:"Study (Longitudinal Rare)", text:"Few longitudinal studies track well-being over time.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Time dynamics"] },
+      { id:"HW2",  title:"Study (Autonomy)", text:"Autonomy predicts engagement and satisfaction in hybrid schedules.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
+      { id:"HW3",  title:"Study (Commute Relief)", text:"Reduced commuting time is linked to better daily mood and less fatigue.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Resource pathway"] },
+      { id:"HW4",  title:"Study (Boundary Strategies)", text:"Boundary management strategies reduce conflict and improve well-being.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
+      { id:"HW5",  title:"Study (Schedule Fit)", text:"Employees with choice over hybrid days report higher satisfaction.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Choice matters"] },
+
+      // Claim B (5)
+      { id:"HW6",  title:"Study (Boundary Blurring)", text:"Work-home boundary blurring predicts stress and burnout.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Mechanism clue"] },
+      { id:"HW7",  title:"Study (Isolation)", text:"Isolation increases for remote-heavy schedules, lowering well-being for some.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Schedule effect"] },
+      { id:"HW8",  title:"Study (Workload Cancels Benefits)", text:"High workload cancels flexibility benefits and raises strain.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Interaction"] },
+      { id:"HW9",  title:"Study (Care Demands)", text:"Care responsibilities are linked to higher strain under hybrid work.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Home demand"] },
+      { id:"HW10", title:"Study (Resource Quality)", text:"Poor-quality support (unclear expectations, weak tools) increases conflict.", roles:["claimB"], gapHints:["THEORETICAL"], meta:["Quality mechanism"] },
+
+      // Boundary (3)
+      { id:"HW11", title:"Boundary (Household Structure)", text:"Outcomes differ by household structure and unpaid work distribution.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Population boundary"] },
+      { id:"HW12", title:"Boundary (Policy Variation)", text:"Different organizational hybrid policies make results hard to compare.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Policy boundary"] },
+      { id:"HW13", title:"Boundary (Role Type)", text:"Well-being impacts differ by role (client-facing vs independent work).", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Job boundary"] },
+
+      // Methods (2)
+      { id:"HW14", title:"Method (Cross-sectional)", text:"Most studies are cross-sectional; mechanisms over time are uncertain.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Time dynamics unclear"] },
+      { id:"HW15", title:"Method (Measures Vary)", text:"Well-being measures differ across studies; comparability is limited.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Measurement variability"] },
     ],
     twist: {
-      text: "New evidence: thriving occurs when resources offset home demands; otherwise strain grows.",
+      text: "New evidence emphasizes boundary conditions and stronger designs.",
       cards: [
-        { id:"THW1", title:"Twist (Balance)", text:"High resources + manageable home demands predict thriving.", roles:["claimB","boundary"], gapHints:["THEORETICAL","CONTEXTUAL"], meta:["Balance mechanism"] },
-        { id:"THW2", title:"Twist (Schedule Design)", text:"2–3 office days best for collaboration/well-being in one study.", roles:["claimA","boundary"], gapHints:["CONTEXTUAL"], meta:["Boundary condition"] },
+        { id:"THW1", title:"Twist (Boundary: Balance Condition)", text:"Thriving occurs when resources offset home demands; otherwise strain grows.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Balance condition"] },
+        { id:"THW2", title:"Twist (Method: Longitudinal)", text:"A longitudinal study shows well-being shifts across the first 6 months.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Time-based evidence"] },
       ]
     }
   },
+
   {
     id: "sme_sustainability",
     title: "Case 6: Sustainability Practices in SMEs",
@@ -481,27 +551,34 @@ const CASES = [
     answerKey: "MIXED_DEPENDS",
     gapKey: ["METHODOLOGICAL","CONTEXTUAL"],
     cards: [
-      { id:"SS1",  title:"Study (Market Benefit)", text:"Green branding predicts preference in some markets.", roles:["claimA","boundary"], gapHints:["CONTEXTUAL"], meta:["Market context"] },
-      { id:"SS2",  title:"Study (Cost Barrier)", text:"Upfront costs reduce adoption among constrained SMEs.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Resource constraint"] },
-      { id:"SS3",  title:"Study (Metric Inconsistency)", text:"Performance measured differently across studies.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Inconsistent metrics"] },
-      { id:"SS4",  title:"Study (Time Horizon)", text:"Short-term profits may dip; long-term gains unclear.", roles:["claimB","methods"], gapHints:["METHODOLOGICAL"], meta:["Limited follow-up"] },
-      { id:"SS5",  title:"Study (Regulatory Context)", text:"Regulation strength changes benefits of sustainability investment.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Policy boundary"] },
-      { id:"SS6",  title:"Study (Industry Differences)", text:"Effects differ by industry (food, retail, manufacturing).", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Industry boundary"] },
-      { id:"SS7",  title:"Study (Owner Values)", text:"Owner values predict adoption; mechanism rarely tested.", roles:["methods"], gapHints:["THEORETICAL"], meta:["Motivation mechanism"] },
-      { id:"SS8",  title:"Study (Finance Access)", text:"Financing access predicts adoption and outcomes.", roles:["claimA","boundary"], gapHints:["CONTEXTUAL"], meta:["Resource boundary"] },
-      { id:"SS9",  title:"Study (Self-report Bias)", text:"Practices often self-reported; greenwashing risk.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Validity concern"] },
-      { id:"SS10", title:"Study (Reverse Causality)", text:"High-performing SMEs may adopt because they can.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Causal ambiguity"] },
-      { id:"SS11", title:"Study (Supply Chain Pressure)", text:"Buyer requirements drive adoption; outcomes depend on pressure.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["External constraint"] },
-      { id:"SS12", title:"Study (Implementation Quality)", text:"Quality predicts outcomes more than number of practices.", roles:["claimB","methods"], gapHints:["THEORETICAL"], meta:["Quality mechanism"] },
-      { id:"SS13", title:"Study (WTP Variability)", text:"Willingness to pay varies; benefits depend on segment.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Market boundary"] },
-      { id:"SS14", title:"Study (Cross-country Variation)", text:"Across countries, results vary widely; local conditions matter.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Local conditions"] },
-      { id:"SS15", title:"Study (Need Stronger Methods)", text:"Few objective audits or longitudinal designs in SMEs.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Need stronger evidence"] },
+      // Claim A (5)
+      { id:"SS1",  title:"Study (Market Preference)", text:"Green branding predicts preference in some customer segments.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Market benefit"] },
+      { id:"SS2",  title:"Study (Efficiency Gains)", text:"Energy-saving practices reduce operating costs for some SMEs.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Cost efficiency"] },
+      { id:"SS3",  title:"Study (Buyer Requirements)", text:"Meeting sustainability requirements helps SMEs access supply chains.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Market access"] },
+      { id:"SS4",  title:"Study (Employee Pride)", text:"Sustainability initiatives are linked to higher employee commitment in SMEs.", roles:["claimA"], gapHints:["THEORETICAL"], meta:["Human resource pathway"] },
+      { id:"SS5",  title:"Study (Financing Support)", text:"SMEs with sustainability-linked financing show better growth outcomes.", roles:["claimA"], gapHints:["CONTEXTUAL"], meta:["Resource support"] },
+
+      // Claim B (5)
+      { id:"SS6",  title:"Study (Upfront Cost Barrier)", text:"Upfront costs reduce adoption among constrained SMEs.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Resource constraint"] },
+      { id:"SS7",  title:"Study (Short-term Dip)", text:"Short-term profits may dip after adopting practices; long-term gains unclear.", roles:["claimB"], gapHints:["METHODOLOGICAL"], meta:["Time horizon issue"] },
+      { id:"SS8",  title:"Study (Implementation Burden)", text:"Limited staff/time makes implementation uneven, reducing benefits.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Capability constraint"] },
+      { id:"SS9",  title:"Study (Market WTP Low)", text:"Benefits are weak in markets with low willingness-to-pay for sustainability.", roles:["claimB"], gapHints:["CONTEXTUAL"], meta:["Market boundary"] },
+      { id:"SS10", title:"Study (Reverse Causality)", text:"High-performing SMEs may adopt sustainability because they can.", roles:["claimB"], gapHints:["METHODOLOGICAL"], meta:["Causal ambiguity"] },
+
+      // Boundary (3)
+      { id:"SS11", title:"Boundary (Industry)", text:"Effects differ by industry (food, retail, manufacturing).", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Industry boundary"] },
+      { id:"SS12", title:"Boundary (Regulatory Context)", text:"Regulation strength changes the value of sustainability investments.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Policy boundary"] },
+      { id:"SS13", title:"Boundary (Local Conditions)", text:"Across countries and regions, results vary widely due to local conditions.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Context variability"] },
+
+      // Methods (2)
+      { id:"SS14", title:"Method (Self-report Bias)", text:"Practices are often self-reported; greenwashing risk affects findings.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Validity concern"] },
+      { id:"SS15", title:"Method (Metrics Inconsistent)", text:"Performance is measured differently across studies, limiting comparisons.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Inconsistent metrics"] },
     ],
     twist: {
-      text: "New evidence: verified (audited) practices predict performance better than self-reports.",
+      text: "New evidence focuses on verification and measurement quality.",
       cards: [
-        { id:"TSS1", title:"Twist (Audit Evidence)", text:"Audited practices correlate with performance; self-reports inflate effects.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Measurement quality"] },
-        { id:"TSS2", title:"Twist (Eco-label Markets)", text:"Benefits strongest where eco-label recognition is high.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Market boundary"] },
+        { id:"TSS1", title:"Twist (Boundary: Eco-label Recognition)", text:"Benefits are strongest where eco-label recognition is high.", roles:["boundary"], gapHints:["CONTEXTUAL"], meta:["Market condition"] },
+        { id:"TSS2", title:"Twist (Method: Audits)", text:"Audited practices predict performance better than self-reports.", roles:["methods"], gapHints:["METHODOLOGICAL"], meta:["Measurement quality"] },
       ]
     }
   }
@@ -512,7 +589,7 @@ const el = (id)=>document.getElementById(id);
 const fmt = (sec)=>`${String(Math.floor(sec/60)).padStart(2,"0")}:${String(sec%60).padStart(2,"0")}`;
 function escapeHTML(str){ return (str||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m])); }
 
-/** ========= Base64URL helpers (portable submission code) ========= */
+/** ========= Base64URL helpers ========= */
 function b64urlEncode(str){
   const b64 = btoa(unescape(encodeURIComponent(str)));
   return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -535,7 +612,7 @@ function checksum6(payloadStr){
   return String(h).padStart(10,'0').slice(0,6);
 }
 
-/** ========= Timer logic (twist after 5 minutes elapsed) ========= */
+/** ========= Timer logic ========= */
 function startTimerIfNeeded(){
   if (started) return;
   started = true;
@@ -554,6 +631,7 @@ function startTimerIfNeeded(){
       endGame();
     }
     updateTimers();
+    updatePreSubmitSenseCheck();
   }, 1000);
 
   updateTimers();
@@ -592,7 +670,7 @@ function endGame(){
   toast("⏱️ Time is up. Submit your tentative answer + gap types with pinned evidence.");
 }
 
-/** ========= Case loading (randomized among 6) ========= */
+/** ========= Case loading ========= */
 function assignRandomCase(){
   if (started) { toast("⚠️ Game already started. Reset to load a new case."); return; }
   const idx = Math.floor(Math.random()*CASES.length);
@@ -621,6 +699,7 @@ function loadCase(caseId){
   // clear UI
   clearBoardAndTray();
   el("twistBox").classList.remove("show");
+  el("preSubmitCheck").style.display = "none";
 
   // add initial evidence to tray
   activeCase.cards.forEach(addCardToTray);
@@ -671,7 +750,7 @@ function addCardToTray(card){
     <div class="small" style="margin-top:6px;">${(card.meta||[]).map(m=>`• ${escapeHTML(m)}`).join("<br>")}</div>
   `;
   el("tray").appendChild(div);
-  updateMetrics();
+  updateCounts();
 }
 
 function togglePin(cardId){
@@ -684,7 +763,7 @@ function togglePin(cardId){
     pinned.add(cardId);
     node.classList.add("pinned");
   }
-  updateMetrics();
+  updateCounts();
 }
 
 /** ========= Drag & drop ========= */
@@ -718,6 +797,7 @@ function updateCounts(){
   el("countC").textContent = el("innerC").children.length;
   el("countM").textContent = el("innerM").children.length;
   updateMetrics();
+  updatePreSubmitSenseCheck();
 }
 
 /** ========= Final choices ========= */
@@ -726,11 +806,11 @@ function renderAnswerChoices(){
   wrap.innerHTML = "";
 
   const options = [
-    { id:"A_TRUE", label:"Claim A is mostly supported", desc:"Most evidence points to Claim A, with few boundary/method issues." },
-    { id:"B_TRUE", label:"Claim B is mostly supported", desc:"Evidence suggests effects depend on conditions; Claim B is stronger." },
-    { id:"MIXED_DEPENDS", label:"Mixed results, depends on context", desc:"Studies conflict; boundary/context explains differences." },
-    { id:"INSUFFICIENT", label:"Evidence is insufficient for a clear conclusion", desc:"Too many method/measurement limitations to conclude confidently." },
-    { id:"BOTH_TRUE_PROCESS_GAP", label:"Both can be true; the process determines outcomes", desc:"Benefits exist, but barriers/process can exclude certain groups." },
+    { id:"A_TRUE", label:"Claim A is mostly supported", desc:"Most evidence points to Claim A." },
+    { id:"B_TRUE", label:"Claim B is mostly supported", desc:"Most evidence points to Claim B." },
+    { id:"MIXED_DEPENDS", label:"Mixed results, depends on context", desc:"Studies conflict or differ; context explains why." },
+    { id:"INSUFFICIENT", label:"Evidence is insufficient for a clear conclusion", desc:"Methods/measures are too weak to conclude." },
+    { id:"BOTH_TRUE_PROCESS_GAP", label:"Both can be true; the process determines outcomes", desc:"Benefits exist, but barriers exclude some users." },
   ];
 
   options.forEach(o=>{
@@ -748,6 +828,7 @@ function pickAnswer(id){
   const node = el("ans_"+id);
   if (node) node.classList.add("selected");
   updateMetrics();
+  updatePreSubmitSenseCheck();
 }
 
 function renderGapChoices(){
@@ -756,7 +837,7 @@ function renderGapChoices(){
 
   const opts = [
     { id:"THEORETICAL", label:"Theoretical gap", desc:"Explanation is unclear (why/how). Mechanisms not tested." },
-    { id:"CONTEXTUAL", label:"Contextual gap", desc:"Missing comparisons by population/setting/time (for whom/where/when)." },
+    { id:"CONTEXTUAL", label:"Contextual gap", desc:"Missing population/setting/time comparisons (for whom/where/when)." },
     { id:"METHODOLOGICAL", label:"Methodological gap", desc:"Design/measurement limits confidence (how well we know)." },
   ];
 
@@ -778,9 +859,10 @@ function toggleGapType(id){
     el("gap_"+id).classList.add("selected");
   }
   updateMetrics();
+  updatePreSubmitSenseCheck();
 }
 
-/** ========= Scoring + breakdown ========= */
+/** ========= Scoring ========= */
 function computeScoreBreakdown(){
   if (!activeCase){
     return { total:0, breakdownLines:[] };
@@ -794,7 +876,7 @@ function computeScoreBreakdown(){
   total += pinScore;
   breakdown.push(`Evidence support: ${pinScore} points (Pinned ${pinned.size} evidence cards)`);
 
-  // Answer alignment
+  // Answer alignment (case-level)
   let answerScore = 0;
   if (answerPick){
     if (answerPick === activeCase.answerKey){
@@ -817,7 +899,7 @@ function computeScoreBreakdown(){
   total += gapScore;
   breakdown.push(`Gap identification: ${gapScore} points (${gapMatches} strong gap type matches)`);
 
-  // Coherence bonus based on how they used boundary/method buckets
+  // Coherence bonus
   let coherenceBonus = 0;
   const boundaryCount = el("innerC").children.length;
   const methodCount = el("innerM").children.length;
@@ -836,7 +918,7 @@ function computeScoreBreakdown(){
     total += coherenceBonus;
   }
 
-  // Twist bonus (only if twist is unlocked and they pinned at least one twist card)
+  // Twist bonus
   let twistBonus = 0;
   if (twistUnlocked){
     const pinnedTwist = [...pinned].some(id => id.startsWith("T"));
@@ -849,11 +931,20 @@ function computeScoreBreakdown(){
 
   return { total, breakdownLines: breakdown };
 }
-
 function computeScore(){
   return computeScoreBreakdown().total;
 }
-// ===== Self-check feedback (does your answer match your own sorting?) =====
+
+function updateMetrics(){
+  const sorted = ["innerA","innerB","innerC","innerM"].reduce((acc,id)=> acc + el(id).children.length, 0);
+  el("sortedNum").textContent = sorted;
+  el("pinnedNum").textContent = pinned.size;
+
+  score = computeScore();
+  el("scoreNum").textContent = score;
+}
+
+/** ========= Sense check + colors + warnings ========= */
 function cardCurrentBucket(cardId){
   const node = el("card_"+cardId);
   if (!node) return "tray";
@@ -889,129 +980,147 @@ function senseCheck(answerPick, pinnedSet){
     if (bucket==="methods") pinM++;
   });
 
-  // Expected pattern by answer
-  let expected = { needA:0, needB:0, needC:0, needM:0, message:"" };
-
-  if (answerPick === "A_TRUE"){
-    expected = { needA:1, needB:0, needC:0, needM:0,
-      message:"If you claim A is mostly supported, your board should show more evidence in Supports A, and your pinned evidence should include A-support cards." };
-  } else if (answerPick === "B_TRUE"){
-    expected = { needA:0, needB:1, needC:0, needM:0,
-      message:"If you claim B is mostly supported, your board should show more evidence in Supports B, and your pinned evidence should include B-support cards." };
-  } else if (answerPick === "MIXED_DEPENDS"){
-    expected = { needA:0, needB:0, needC:1, needM:0,
-      message:"If you claim mixed/depends, you should have strong Boundary/Context evidence (what it depends on) and pin at least one Boundary/Context card." };
-  } else if (answerPick === "INSUFFICIENT"){
-    expected = { needA:0, needB:0, needC:0, needM:1,
-      message:"If you claim evidence is insufficient, you should have strong Method/Measurement limits evidence and pin at least one Method/Measure card." };
-  } else if (answerPick === "BOTH_TRUE_PROCESS_GAP"){
-    expected = { needA:0, needB:0, needC:1, needM:0,
-      message:"If you claim both can be true (process determines outcomes), show Boundary/Context evidence and pin cards about process steps and barriers." };
+  // expected pinned bucket for answer type
+  let need = {A:0,B:0,C:0,M:0,msg:""};
+  if (answerPick==="A_TRUE"){
+    need={A:1,B:0,C:0,M:0,msg:"You selected 'Claim A mostly supported'. Pin at least one Supports A card and show more A evidence than B."};
+  } else if (answerPick==="B_TRUE"){
+    need={A:0,B:1,C:0,M:0,msg:"You selected 'Claim B mostly supported'. Pin at least one Supports B card and show more B evidence than A."};
+  } else if (answerPick==="MIXED_DEPENDS"){
+    need={A:0,B:0,C:1,M:0,msg:"You selected 'Mixed/Depends'. You need Boundary/Context evidence explaining what it depends on. Pin at least one Boundary card."};
+  } else if (answerPick==="INSUFFICIENT"){
+    need={A:0,B:0,C:0,M:1,msg:"You selected 'Insufficient evidence'. You need Method/Measurement Limits evidence. Pin at least one Method card."};
+  } else if (answerPick==="BOTH_TRUE_PROCESS_GAP"){
+    need={A:0,B:0,C:1,M:0,msg:"You selected 'Both can be true; process matters'. You need Boundary/Context evidence about steps/conditions. Pin at least one Boundary card."};
   }
 
-  // Fit score based on sorting
+  // Fit levels
   let fit = "OK";
-  let fitDetails = [];
+  let fitWhy = [];
 
-  if (answerPick === "A_TRUE" && !(prof.a > prof.b && prof.a >= prof.c)){
-    fit = "Weak";
-    fitDetails.push("Your sorting does not show Supports A clearly dominating.");
-  }
-  if (answerPick === "B_TRUE" && !(prof.b > prof.a && prof.b >= prof.c)){
-    fit = "Weak";
-    fitDetails.push("Your sorting does not show Supports B clearly dominating.");
-  }
-  if (answerPick === "MIXED_DEPENDS" && !(prof.c >= 2)){
-    fit = "Weak";
-    fitDetails.push("You chose 'depends' but you have little Boundary/Context evidence sorted.");
-  }
-  if (answerPick === "INSUFFICIENT" && !(prof.m >= 2)){
-    fit = "Weak";
-    fitDetails.push("You chose 'insufficient' but you have little Method/Measurement evidence sorted.");
-  }
-  if (answerPick === "BOTH_TRUE_PROCESS_GAP" && !(prof.c >= 2)){
-    fit = "Weak";
-    fitDetails.push("You chose 'process determines outcomes' but you have little Boundary/Context evidence sorted.");
+  if (!answerPick){
+    fit="Weak";
+    fitWhy.push("No tentative answer selected yet.");
+  } else {
+    if (answerPick==="A_TRUE" && !(prof.a > prof.b && prof.a >= 3)){
+      fit="Weak"; fitWhy.push("Your board does not show Supports A clearly dominating.");
+    }
+    if (answerPick==="B_TRUE" && !(prof.b > prof.a && prof.b >= 3)){
+      fit="Weak"; fitWhy.push("Your board does not show Supports B clearly dominating.");
+    }
+    if (answerPick==="MIXED_DEPENDS" && !(prof.c >= 2)){
+      fit="Weak"; fitWhy.push("You chose 'depends' but you have little Boundary/Context evidence sorted.");
+    }
+    if (answerPick==="INSUFFICIENT" && !(prof.m >= 2)){
+      fit="Weak"; fitWhy.push("You chose 'insufficient' but you have little Method/Measurement evidence sorted.");
+    }
+    if (answerPick==="BOTH_TRUE_PROCESS_GAP" && !(prof.c >= 2)){
+      fit="Weak"; fitWhy.push("You chose 'process matters' but you have little Boundary/Context evidence sorted.");
+    }
   }
 
-  // Pinned evidence fit
-  let pinFit = "OK";
-  let pinFix = [];
-  if (expected.needA && pinA < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Supports A card."); }
-  if (expected.needB && pinB < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Supports B card."); }
-  if (expected.needC && pinC < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Boundary/Context card."); }
-  if (expected.needM && pinM < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Method/Measurement Limits card."); }
+  // Pinned fit
+  let pinFit="OK";
+  let pinWhy=[];
+  if (need.A && pinA<1){ pinFit="Weak"; pinWhy.push("Pin at least 1 Supports A card."); }
+  if (need.B && pinB<1){ pinFit="Weak"; pinWhy.push("Pin at least 1 Supports B card."); }
+  if (need.C && pinC<1){ pinFit="Weak"; pinWhy.push("Pin at least 1 Boundary/Context card."); }
+  if (need.M && pinM<1){ pinFit="Weak"; pinWhy.push("Pin at least 1 Method/Measurement card."); }
 
-  // Make a short actionable coaching line
-  const nextStep = [
-    expected.message,
-    ...(fitDetails.length ? fitDetails : []),
-    ...(pinFix.length ? pinFix : [])
-  ].filter(Boolean);
-
-  // Strong if both fits are OK and enough sorted
-  if (fit !== "Weak" && pinFit !== "Weak" && totalSorted >= 6){
-    fit = "Strong";
-    pinFit = "Strong";
+  // Promote to Strong if enough sorted + pinned fits
+  if (fit!=="Weak" && pinFit!=="Weak" && totalSorted>=8 && pinnedSet.size>=2){
+    fit="Strong"; pinFit="Strong";
+  } else if (fit!=="Weak" && pinFit!=="Weak" && totalSorted>=6){
+    fit="OK"; pinFit="OK";
+  } else {
+    if (fit==="OK" && totalSorted<6) { fit="Weak"; fitWhy.push("Sort more evidence cards to strengthen your synthesis."); }
   }
 
   return {
     sortingProfile: prof,
-    pinBuckets: { pinA, pinB, pinC, pinM },
+    pinBuckets: {pinA,pinB,pinC,pinM},
     fit,
     pinFit,
-    nextStep
+    coaching: [need.msg, ...fitWhy, ...pinWhy].filter(Boolean)
   };
 }
 
-function updateMetrics(){
-  const sorted = ["innerA","innerB","innerC","innerM"].reduce((acc,id)=> acc + el(id).children.length, 0);
-  el("sortedNum").textContent = sorted;
-  el("pinnedNum").textContent = pinned.size;
-
-  score = computeScore();
-  el("scoreNum").textContent = score;
+function levelToPill(level){
+  if (level==="Strong") return `<span class="statusPill status-green">Strong</span>`;
+  if (level==="OK") return `<span class="statusPill status-yellow">OK</span>`;
+  return `<span class="statusPill status-red">Weak</span>`;
 }
 
-/** ========= Portable submission code =========
- * Format:
- *  RRL1-<payloadBase64Url>-<checksum6>
- * where payload is JSON with team/case/score/etc.
- */
+function updatePreSubmitSenseCheck(){
+  if (!activeCase) return;
+  const team = (el("teamName").value||"").trim();
+  const anySelected = !!answerPick || gapTypePicks.size>0 || pinned.size>0;
+  if (!anySelected){ el("preSubmitCheck").style.display="none"; return; }
+
+  const sc = senseCheck(answerPick, pinned);
+  const needWarn = (sc.fit==="Weak" || sc.pinFit==="Weak");
+
+  el("preSubmitCheck").style.display = "block";
+  el("preSubmitCheck").style.borderLeftColor = needWarn ? "var(--badLine)" : "var(--okLine)";
+  el("preSubmitBody").innerHTML = `
+    <div>Sorting–Answer Fit: ${levelToPill(sc.fit)} &nbsp; | &nbsp; Pinned Evidence Fit: ${levelToPill(sc.pinFit)}</div>
+    <div class="small" style="margin-top:6px;">
+      Board counts: A=${sc.sortingProfile.a}, B=${sc.sortingProfile.b}, Context=${sc.sortingProfile.c}, Method=${sc.sortingProfile.m}<br>
+      Pinned-from buckets: A=${sc.pinBuckets.pinA}, B=${sc.pinBuckets.pinB}, Context=${sc.pinBuckets.pinC}, Method=${sc.pinBuckets.pinM}
+    </div>
+    <div class="small" style="margin-top:6px;">
+      <b>Fix before submit:</b><br>
+      ${sc.coaching.map(x=>`• ${escapeHTML(x)}`).join("<br>")}
+    </div>
+    ${team ? "" : `<div class="small" style="margin-top:6px;"><b>Reminder:</b> Add your Team name before submitting.</div>`}
+  `;
+}
+
+/** ========= Reflection sentence auto-generator ========= */
+function gapLabel(g){
+  if (g==="THEORETICAL") return "theoretical";
+  if (g==="CONTEXTUAL") return "contextual";
+  if (g==="METHODOLOGICAL") return "methodological";
+  return g;
+}
+
+function makeReflectionSentence(){
+  const team = (el("teamName").value||"").trim();
+  const c = activeCase?.title || "this case";
+  const gaps = [...gapTypePicks].map(gapLabel);
+  const gText = gaps.length ? gaps.join(" and ") : "a research gap";
+  const sc = senseCheck(answerPick, pinned);
+  const counts = sc.sortingProfile;
+  const evidenceSummary = `we organized evidence across A=${counts.a}, B=${counts.b}, Context=${counts.c}, Method=${counts.m}`;
+  const twistNote = twistUnlocked ? (twistAdded ? "and updated our synthesis after the twist evidence." : "but did not add twist evidence.") : "and no twist evidence was available yet.";
+
+  return `In ${c}, our team reached a tentative answer of "${answerPick || "N/A"}" because ${evidenceSummary}. We identified a ${gText} by noting what the literature still cannot explain or generalize, and we justified this using pinned evidence. We treated the RRL as synthesis (patterns, contradictions, boundaries) rather than a list of summaries, ${twistNote}`;
+}
+
+/** ========= Portable submission code ========= */
 function makeSubmissionCode(payloadObj){
   const payloadStr = JSON.stringify(payloadObj);
   const payloadB64 = b64urlEncode(payloadStr);
   const sig = checksum6(payloadStr);
   return `RRL1-${payloadB64}-${sig}`;
 }
-
 function parseSubmissionCode(code){
   code = (code||"").trim();
   if (!code.startsWith("RRL1-")) return { ok:false, err:"Not an RRL1 code" };
   const parts = code.split("-");
   if (parts.length < 3) return { ok:false, err:"Invalid format" };
-  const payloadB64 = parts.slice(1, parts.length-1).join("-"); // in case future includes dashes
   const sig = parts[parts.length-1];
-
+  const payloadB64 = parts.slice(1, parts.length-1).join("-");
   let payloadStr;
-  try{
-    payloadStr = b64urlDecode(payloadB64);
-  }catch(e){
-    return { ok:false, err:"Cannot decode payload" };
-  }
+  try{ payloadStr = b64urlDecode(payloadB64); } catch(e){ return { ok:false, err:"Cannot decode payload" }; }
   const expected = checksum6(payloadStr);
   if (expected !== sig) return { ok:false, err:"Checksum mismatch" };
-
   let obj;
-  try{
-    obj = JSON.parse(payloadStr);
-  }catch(e){
-    return { ok:false, err:"Payload not JSON" };
-  }
+  try{ obj = JSON.parse(payloadStr); } catch(e){ return { ok:false, err:"Payload not JSON" }; }
   return { ok:true, obj };
 }
 
-/** ========= Submit ========= */
+/** ========= Submit (with sense-check warning + colored feedback + reflection) ========= */
 function submit(){
   if (!activeCase){ toast("⚠️ Load a case first."); return; }
   const team = (el("teamName").value||"").trim();
@@ -1019,6 +1128,17 @@ function submit(){
   if (!answerPick){ toast("⚠️ Choose a tentative answer first."); return; }
   if (gapTypePicks.size === 0){ toast("⚠️ Select at least one gap type."); return; }
   if (pinned.size < 2){ toast("⚠️ Pin at least 2 evidence cards to support your answer."); return; }
+
+  // Warning BEFORE submit: logic weak
+  const scPre = senseCheck(answerPick, pinned);
+  if (scPre.fit === "Weak" || scPre.pinFit === "Weak"){
+    const proceed = confirm(
+      "Your Sense Check is WEAK.\n\n" +
+      "This usually means your answer does not match how you sorted/pinned evidence.\n\n" +
+      "Click OK to submit anyway, or Cancel to revise."
+    );
+    if (!proceed) return;
+  }
 
   const { total, breakdownLines } = computeScoreBreakdown();
 
@@ -1031,11 +1151,15 @@ function submit(){
     answer: answerPick,
     gaps: [...gapTypePicks],
     pinned: [...pinned],
+    sortedCounts: getSortingProfile(),
+    twistUnlocked,
+    twistAdded,
     submittedAt: new Date().toISOString()
   };
   const submissionCode = makeSubmissionCode(payload);
-  const sc = senseCheck(answerPick, pinned);
 
+  const sc = senseCheck(answerPick, pinned);
+  const reflection = makeReflectionSentence();
 
   el("result").style.display = "block";
   el("result").innerHTML = `
@@ -1047,17 +1171,24 @@ function submit(){
 
       <b>Score Breakdown</b><br>
       ${breakdownLines.map(b=>`• ${escapeHTML(b)}`).join("<br>")}<br><br>
-<br><br>
-<b>Sense Check (does your answer match your sorting?)</b><br>
-• <b>Sorting–Answer Fit:</b> ${escapeHTML(sc.fit)}<br>
-• <b>Pinned Evidence Fit:</b> ${escapeHTML(sc.pinFit)}<br>
-• <b>Your board counts:</b>
-A=${sc.sortingProfile.a}, B=${sc.sortingProfile.b}, Context=${sc.sortingProfile.c}, Method=${sc.sortingProfile.m}<br>
-• <b>Pinned-from buckets:</b>
-A=${sc.pinBuckets.pinA}, B=${sc.pinBuckets.pinB}, Context=${sc.pinBuckets.pinC}, Method=${sc.pinBuckets.pinM}<br>
-<br>
-<b>What to fix next</b><br>
-${sc.nextStep.map(x=>`• ${escapeHTML(x)}`).join("<br>")}
+
+      <b>Sense Check (self-evaluation)</b><br>
+      • <b>Sorting–Answer Fit:</b> ${levelToPill(sc.fit)}<br>
+      • <b>Pinned Evidence Fit:</b> ${levelToPill(sc.pinFit)}<br>
+      • <b>Your board counts:</b> A=${sc.sortingProfile.a}, B=${sc.sortingProfile.b}, Context=${sc.sortingProfile.c}, Method=${sc.sortingProfile.m}<br>
+      • <b>Pinned-from buckets:</b> A=${sc.pinBuckets.pinA}, B=${sc.pinBuckets.pinB}, Context=${sc.pinBuckets.pinC}, Method=${sc.pinBuckets.pinM}<br>
+      <div class="small" style="margin-top:6px;">
+        <b>What to improve next time:</b><br>
+        ${sc.coaching.map(x=>`• ${escapeHTML(x)}`).join("<br>")}
+      </div><br>
+
+      <b>Reflection sentence (copy/paste)</b><br>
+      <div class="mono" style="padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;white-space:pre-wrap;">
+        ${escapeHTML(reflection)}
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="secondary" onclick="copyText(${JSON.stringify(reflection)})">Copy Reflection</button>
+      </div><br>
 
       <b>Submission Code (send this to your instructor):</b><br>
       <div class="mono" style="padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;word-break:break-all;">
@@ -1067,14 +1198,10 @@ ${sc.nextStep.map(x=>`• ${escapeHTML(x)}`).join("<br>")}
         <button class="secondary" onclick="copyText(${JSON.stringify(submissionCode)})">Copy Code</button>
         <button class="secondary" onclick="copyText(${JSON.stringify(team + ' | ' + submissionCode)})">Copy Team + Code</button>
       </div>
-      <div class="tinyNote">Paste to chat/LMS exactly as copied. One line.</div>
+      <div class="tinyNote">Paste to chat/LMS exactly as copied. One line (but instructor parser can handle wrapped codes).</div>
     </div>
   `;
   el("result").scrollIntoView({behavior:"smooth", block:"start"});
-}
-
-function copyText(txt){
-  navigator.clipboard.writeText(txt).then(()=>toast("✅ Copied to clipboard."));
 }
 
 /** ========= Hint ========= */
@@ -1096,7 +1223,7 @@ function hint(){
     toast("Hint: Twist is unlocked. Add twist evidence and consider updating your tentative answer and gap.");
     return;
   }
-  toast("Hint: Improve score by aligning your synthesis to the overall evidence pattern and selecting the best-fitting gap type(s).");
+  toast("Hint: Improve by making your answer match your Boundary/Method sorting and by pinning the right kinds of evidence.");
 }
 
 /** ========= Reset ========= */
@@ -1123,8 +1250,11 @@ function toast(html){
   t.innerHTML = html;
   t.scrollIntoView({behavior:"smooth", block:"start"});
 }
+function copyText(txt){
+  navigator.clipboard.writeText(txt).then(()=>toast("✅ Copied to clipboard."));
+}
 
-/** ========= Instructor Dashboard ========= */
+/** ========= Instructor Dashboard + robust parsing + analytics ========= */
 let parsedRows = [];
 
 function toggleInstructor(){
@@ -1139,63 +1269,81 @@ function clearInstructor(){
   el("codesInput").value = "";
   el("resultsTable").innerHTML = "";
   el("parseSummary").textContent = "";
+  el("analyticsGrid").innerHTML = "";
   parsedRows = [];
+}
+
+function extractAllCodesFromText(raw){
+  // Robust: pull all occurrences even if wrapped
+  // Match RRL1- + base64url-ish + - + 6 digits
+  const re = /RRL1-[A-Za-z0-9\-_]+-[0-9]{6}/g;
+  const matches = raw.match(re) || [];
+  // De-duplicate while preserving order
+  const seen = new Set();
+  const out = [];
+  for (const m of matches){
+    if (!seen.has(m)){ seen.add(m); out.push(m); }
+  }
+  return out;
 }
 
 function parseCodes(){
   const raw = el("codesInput").value || "";
-  const lines = raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const codes = extractAllCodesFromText(raw);
 
-  let ok=0, bad=0;
   parsedRows = [];
+  let ok=0, bad=0;
 
-  lines.forEach(line=>{
-    // allow "TEAM | CODE" (we'll extract the code part)
-    let code = line;
-    const m = line.match(/(RRL1-[A-Za-z0-9\-_]+-[0-9]{6})/);
-    if (m) code = m[1];
+  // If no codes found, fall back to line parsing (maybe they pasted only codes, one per line)
+  const linesFallback = raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 
-    const parsed = parseSubmissionCode(code);
+  const items = codes.length ? codes : linesFallback;
+
+  items.forEach(item=>{
+    const parsed = parseSubmissionCode(item);
     if (parsed.ok){
       ok++;
-      parsedRows.push({ ok:true, ...parsed.obj, raw: line });
+      parsedRows.push({ ok:true, ...parsed.obj, code:item });
     } else {
       bad++;
-      parsedRows.push({ ok:false, err: parsed.err, raw: line });
+      parsedRows.push({ ok:false, err: parsed.err, raw: item });
     }
   });
 
-  el("parseSummary").textContent = `Parsed ${lines.length} lines: ${ok} valid, ${bad} invalid.`;
+  el("parseSummary").textContent = codes.length
+    ? `Found ${codes.length} code(s) in pasted text: ${ok} valid, ${bad} invalid.`
+    : `Parsed ${items.length} line(s): ${ok} valid, ${bad} invalid.`;
 
   renderResultsTable();
+  renderAnalytics();
 }
 
 function renderResultsTable(){
   const tbl = el("resultsTable");
-  if (!parsedRows.length){
-    tbl.innerHTML = "";
-    return;
-  }
-  const headers = ["Status","Team","Case","Score","Answer","Gaps","Pinned","Submitted At","Raw Line / Error"];
+  if (!parsedRows.length){ tbl.innerHTML = ""; return; }
+
+  const headers = ["Status","Team","Case","Score","Answer","Gaps","Pinned","Twist Used","Submitted At","Code/Error"];
   let html = `<tr>${headers.map(h=>`<th>${escapeHTML(h)}</th>`).join("")}</tr>`;
 
   parsedRows.forEach(r=>{
     if (r.ok){
-      html += `<tr class="okRow">
-        <td><span class="pillMini">OK</span></td>
+      const twistUsed = r.twistUnlocked ? (r.twistAdded ? "Yes" : "Unlocked only") : "No";
+      html += `<tr>
+        <td><span class="statusPill status-green">OK</span></td>
         <td>${escapeHTML(r.team||"")}</td>
         <td>${escapeHTML(r.caseTitle||r.caseId||"")}</td>
         <td>${escapeHTML(String(r.score ?? ""))}</td>
         <td>${escapeHTML(r.answer||"")}</td>
         <td>${escapeHTML((r.gaps||[]).join(", "))}</td>
         <td>${escapeHTML((r.pinned||[]).join(", "))}</td>
+        <td>${escapeHTML(twistUsed)}</td>
         <td>${escapeHTML(r.submittedAt||"")}</td>
-        <td class="mono">${escapeHTML(r.raw||"")}</td>
+        <td class="mono">${escapeHTML(r.code||"")}</td>
       </tr>`;
     } else {
-      html += `<tr class="badRow">
-        <td><span class="pillMini">BAD</span></td>
-        <td colspan="7"></td>
+      html += `<tr style="background:var(--bad);">
+        <td><span class="statusPill status-red">BAD</span></td>
+        <td colspan="8"></td>
         <td class="mono">${escapeHTML((r.err||"Error") + " | " + (r.raw||""))}</td>
       </tr>`;
     }
@@ -1204,9 +1352,80 @@ function renderResultsTable(){
   tbl.innerHTML = html;
 }
 
+function renderAnalytics(){
+  const grid = el("analyticsGrid");
+  const valid = parsedRows.filter(r=>r.ok);
+  if (!valid.length){
+    grid.innerHTML = "";
+    return;
+  }
+
+  const scores = valid.map(v=>Number(v.score||0));
+  const avg = scores.reduce((a,b)=>a+b,0)/scores.length;
+  const min = Math.min(...scores);
+  const max = Math.max(...scores);
+
+  const band = (s)=>{
+    if (s>=85) return "85–100";
+    if (s>=70) return "70–84";
+    if (s>=50) return "50–69";
+    return "0–49";
+  };
+  const bands = {"85–100":0,"70–84":0,"50–69":0,"0–49":0};
+  scores.forEach(s=>bands[band(s)]++);
+
+  const byCase = {};
+  valid.forEach(v=>{
+    const k = v.caseTitle || v.caseId || "Unknown";
+    byCase[k] = (byCase[k]||0)+1;
+  });
+
+  const gapCounts = {THEORETICAL:0, CONTEXTUAL:0, METHODOLOGICAL:0};
+  valid.forEach(v=>{
+    (v.gaps||[]).forEach(g=>{
+      if (gapCounts[g] !== undefined) gapCounts[g] += 1;
+    });
+  });
+
+  const ansCounts = {};
+  valid.forEach(v=>{
+    const a = v.answer || "None";
+    ansCounts[a] = (ansCounts[a]||0)+1;
+  });
+
+  const mostCommon = (obj)=>{
+    const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+    return entries.slice(0,5).map(([k,v])=>`${k}: ${v}`).join("<br>");
+  };
+
+  grid.innerHTML = `
+    <div class="analyticsCard">
+      <b>Score Summary</b>
+      <div class="muted">Submissions: ${valid.length}</div>
+      <div class="muted">Avg: ${avg.toFixed(1)} | Min: ${min} | Max: ${max}</div>
+      <div class="muted" style="margin-top:6px;">
+        ${Object.entries(bands).map(([k,v])=>`${k}: ${v}`).join("<br>")}
+      </div>
+    </div>
+    <div class="analyticsCard">
+      <b>Cases Played</b>
+      <div class="muted">${mostCommon(byCase) || "—"}</div>
+    </div>
+    <div class="analyticsCard">
+      <b>Gap Types Chosen</b>
+      <div class="muted">
+        THEORETICAL: ${gapCounts.THEORETICAL}<br>
+        CONTEXTUAL: ${gapCounts.CONTEXTUAL}<br>
+        METHODOLOGICAL: ${gapCounts.METHODOLOGICAL}
+      </div>
+      <div class="muted" style="margin-top:6px;"><b>Answers chosen</b><br>${mostCommon(ansCounts) || "—"}</div>
+    </div>
+  `;
+}
+
 function downloadCSV(){
   if (!parsedRows.length){
-    toast("⚠️ Nothing to export. Paste codes and click Parse Codes first.");
+    toast("⚠️ Nothing to export. Paste codes and click Parse first.");
     return;
   }
   const valid = parsedRows.filter(r=>r.ok);
@@ -1215,7 +1434,7 @@ function downloadCSV(){
     return;
   }
 
-  const cols = ["team","caseId","caseTitle","score","answer","gaps","pinned","submittedAt"];
+  const cols = ["team","caseId","caseTitle","score","answer","gaps","pinned","twistUnlocked","twistAdded","submittedAt","code"];
   const lines = [];
   lines.push(cols.join(","));
   valid.forEach(r=>{
