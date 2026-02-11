@@ -853,6 +853,116 @@ function computeScoreBreakdown(){
 function computeScore(){
   return computeScoreBreakdown().total;
 }
+// ===== Self-check feedback (does your answer match your own sorting?) =====
+function cardCurrentBucket(cardId){
+  const node = el("card_"+cardId);
+  if (!node) return "tray";
+  const parent = node.parentElement?.id || "";
+  if (parent === "innerA") return "claimA";
+  if (parent === "innerB") return "claimB";
+  if (parent === "innerC") return "boundary";
+  if (parent === "innerM") return "methods";
+  if (parent === "tray") return "tray";
+  return "tray";
+}
+
+function getSortingProfile(){
+  return {
+    a: el("innerA").children.length,
+    b: el("innerB").children.length,
+    c: el("innerC").children.length,
+    m: el("innerM").children.length
+  };
+}
+
+function senseCheck(answerPick, pinnedSet){
+  const prof = getSortingProfile();
+  const totalSorted = prof.a + prof.b + prof.c + prof.m;
+
+  // Count pinned buckets
+  let pinA=0, pinB=0, pinC=0, pinM=0;
+  [...pinnedSet].forEach(id=>{
+    const bucket = cardCurrentBucket(id);
+    if (bucket==="claimA") pinA++;
+    if (bucket==="claimB") pinB++;
+    if (bucket==="boundary") pinC++;
+    if (bucket==="methods") pinM++;
+  });
+
+  // Expected pattern by answer
+  let expected = { needA:0, needB:0, needC:0, needM:0, message:"" };
+
+  if (answerPick === "A_TRUE"){
+    expected = { needA:1, needB:0, needC:0, needM:0,
+      message:"If you claim A is mostly supported, your board should show more evidence in Supports A, and your pinned evidence should include A-support cards." };
+  } else if (answerPick === "B_TRUE"){
+    expected = { needA:0, needB:1, needC:0, needM:0,
+      message:"If you claim B is mostly supported, your board should show more evidence in Supports B, and your pinned evidence should include B-support cards." };
+  } else if (answerPick === "MIXED_DEPENDS"){
+    expected = { needA:0, needB:0, needC:1, needM:0,
+      message:"If you claim mixed/depends, you should have strong Boundary/Context evidence (what it depends on) and pin at least one Boundary/Context card." };
+  } else if (answerPick === "INSUFFICIENT"){
+    expected = { needA:0, needB:0, needC:0, needM:1,
+      message:"If you claim evidence is insufficient, you should have strong Method/Measurement limits evidence and pin at least one Method/Measure card." };
+  } else if (answerPick === "BOTH_TRUE_PROCESS_GAP"){
+    expected = { needA:0, needB:0, needC:1, needM:0,
+      message:"If you claim both can be true (process determines outcomes), show Boundary/Context evidence and pin cards about process steps and barriers." };
+  }
+
+  // Fit score based on sorting
+  let fit = "OK";
+  let fitDetails = [];
+
+  if (answerPick === "A_TRUE" && !(prof.a > prof.b && prof.a >= prof.c)){
+    fit = "Weak";
+    fitDetails.push("Your sorting does not show Supports A clearly dominating.");
+  }
+  if (answerPick === "B_TRUE" && !(prof.b > prof.a && prof.b >= prof.c)){
+    fit = "Weak";
+    fitDetails.push("Your sorting does not show Supports B clearly dominating.");
+  }
+  if (answerPick === "MIXED_DEPENDS" && !(prof.c >= 2)){
+    fit = "Weak";
+    fitDetails.push("You chose 'depends' but you have little Boundary/Context evidence sorted.");
+  }
+  if (answerPick === "INSUFFICIENT" && !(prof.m >= 2)){
+    fit = "Weak";
+    fitDetails.push("You chose 'insufficient' but you have little Method/Measurement evidence sorted.");
+  }
+  if (answerPick === "BOTH_TRUE_PROCESS_GAP" && !(prof.c >= 2)){
+    fit = "Weak";
+    fitDetails.push("You chose 'process determines outcomes' but you have little Boundary/Context evidence sorted.");
+  }
+
+  // Pinned evidence fit
+  let pinFit = "OK";
+  let pinFix = [];
+  if (expected.needA && pinA < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Supports A card."); }
+  if (expected.needB && pinB < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Supports B card."); }
+  if (expected.needC && pinC < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Boundary/Context card."); }
+  if (expected.needM && pinM < 1){ pinFit="Weak"; pinFix.push("Pin at least 1 Method/Measurement Limits card."); }
+
+  // Make a short actionable coaching line
+  const nextStep = [
+    expected.message,
+    ...(fitDetails.length ? fitDetails : []),
+    ...(pinFix.length ? pinFix : [])
+  ].filter(Boolean);
+
+  // Strong if both fits are OK and enough sorted
+  if (fit !== "Weak" && pinFit !== "Weak" && totalSorted >= 6){
+    fit = "Strong";
+    pinFit = "Strong";
+  }
+
+  return {
+    sortingProfile: prof,
+    pinBuckets: { pinA, pinB, pinC, pinM },
+    fit,
+    pinFit,
+    nextStep
+  };
+}
 
 function updateMetrics(){
   const sorted = ["innerA","innerB","innerC","innerM"].reduce((acc,id)=> acc + el(id).children.length, 0);
@@ -924,6 +1034,8 @@ function submit(){
     submittedAt: new Date().toISOString()
   };
   const submissionCode = makeSubmissionCode(payload);
+  const sc = senseCheck(answerPick, pinned);
+
 
   el("result").style.display = "block";
   el("result").innerHTML = `
@@ -935,6 +1047,17 @@ function submit(){
 
       <b>Score Breakdown</b><br>
       ${breakdownLines.map(b=>`• ${escapeHTML(b)}`).join("<br>")}<br><br>
+<br><br>
+<b>Sense Check (does your answer match your sorting?)</b><br>
+• <b>Sorting–Answer Fit:</b> ${escapeHTML(sc.fit)}<br>
+• <b>Pinned Evidence Fit:</b> ${escapeHTML(sc.pinFit)}<br>
+• <b>Your board counts:</b>
+A=${sc.sortingProfile.a}, B=${sc.sortingProfile.b}, Context=${sc.sortingProfile.c}, Method=${sc.sortingProfile.m}<br>
+• <b>Pinned-from buckets:</b>
+A=${sc.pinBuckets.pinA}, B=${sc.pinBuckets.pinB}, Context=${sc.pinBuckets.pinC}, Method=${sc.pinBuckets.pinM}<br>
+<br>
+<b>What to fix next</b><br>
+${sc.nextStep.map(x=>`• ${escapeHTML(x)}`).join("<br>")}
 
       <b>Submission Code (send this to your instructor):</b><br>
       <div class="mono" style="padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;word-break:break-all;">
