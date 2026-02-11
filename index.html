@@ -5,33 +5,47 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RRL Detective: Research Crime Scene</title>
   <style>
-    :root { --bg:#f4f6f9; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb; }
+    :root { --bg:#f4f6f9; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb; --warn:#fffbeb; --warnLine:#f59e0b; }
     * { box-sizing:border-box; }
     body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--ink); }
-    header { background:#111827; color:#fff; padding:16px 18px; position:sticky; top:0; z-index:10; }
+    header { background:#111827; color:#fff; padding:14px 18px; position:sticky; top:0; z-index:10; }
     header .row { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    h1 { margin:0; font-size:18px; }
     .badge { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.12); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
     .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
     .grid { display:grid; gap:12px; }
-    .grid.cols { grid-template-columns: 360px 1fr; }
+    .grid.cols { grid-template-columns: 380px 1fr; }
     @media (max-width: 980px){ .grid.cols{ grid-template-columns: 1fr; } }
+
     .panel { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-    h1 { margin:0; font-size:18px; }
     h2 { margin:0 0 10px; font-size:16px; }
-    h3 { margin:0 0 8px; font-size:14px; color:#111827; }
-    p { margin:8px 0; color:var(--muted); font-size:13px; line-height:1.4; }
+    h3 { margin:0 0 8px; font-size:14px; }
+    p { margin:8px 0; color:var(--muted); font-size:13px; line-height:1.45; }
 
     .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
     input[type="text"]{ padding:10px 12px; border:1px solid var(--line); border-radius:10px; width:240px; }
-    button { border:0; border-radius:10px; padding:10px 12px; cursor:pointer; font-weight:600; }
+
+    button { border:0; border-radius:10px; padding:10px 12px; cursor:pointer; font-weight:700; }
     button.primary { background:#111827; color:#fff; }
     button.secondary { background:#e5e7eb; color:#111827; }
-    button.ghost { background:transparent; border:1px solid var(--line); }
+    button.ghost { background:transparent; border:1px solid rgba(255,255,255,.25); color:#fff; }
     button:disabled { opacity:.55; cursor:not-allowed; }
 
-    .caseList { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .caseBtn { background:#eef2ff; color:#3730a3; border:1px solid #e0e7ff; }
-    .caseBtn.active { background:#3730a3; color:#fff; border-color:#3730a3; }
+    .callout {
+      border:1px solid var(--line);
+      border-left: 6px solid #111827;
+      border-radius:12px;
+      padding:10px 12px;
+      background:#fff;
+    }
+    .callout b { font-size:13px; }
+    .callout ul { margin:8px 0 0; padding-left:18px; color:var(--muted); font-size:13px; }
+    .callout li { margin:4px 0; }
+
+    .twistBox { display:none; margin-top:10px; border:1px solid var(--warnLine); background:var(--warn); padding:10px 12px; border-radius:12px; }
+    .twistBox.show { display:block; }
 
     .folders { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
     .folder { flex:1; min-width: 200px; border:1px dashed #cbd5e1; padding:10px; border-radius:12px; background:#f8fafc; }
@@ -39,32 +53,35 @@
     .folderHead b { font-size:13px; }
     .pill { font-size:12px; padding:4px 8px; border-radius:999px; background:#e5e7eb; color:#111827; }
 
-    .evidenceArea { display:grid; grid-template-columns: 1fr; gap:10px; }
     .evidenceTray { min-height: 120px; display:flex; flex-wrap:wrap; gap:10px; padding:10px; border:1px solid var(--line); border-radius:12px; background:#fff; }
     .card {
-      width: 220px;
-      background: #ffffff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px;
-      cursor: grab;
+      width: 230px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      cursor:grab;
       box-shadow: 0 1px 3px rgba(0,0,0,.06);
       user-select:none;
     }
-    .card:active { cursor: grabbing; }
+    .card:active { cursor:grabbing; }
+    .small { font-size:12px; color:var(--muted); }
     .tagRow { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
     .tag { font-size:11px; padding:3px 7px; border-radius:999px; background:#f3f4f6; color:#111827; }
-    .small { font-size:12px; color:var(--muted); }
+
+    .scoreBox { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0 12px; }
+    .metric { background:#111827; color:#fff; border-radius:12px; padding:10px 12px; }
+    .metric span { display:block; font-size:12px; opacity:.85; }
+    .metric b { display:block; font-size:16px; margin-top:2px; }
 
     .board { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
     @media (max-width: 980px){ .board{ grid-template-columns: 1fr; } }
     .bucket {
-      min-height: 220px;
-      border: 2px dashed #cbd5e1;
-      border-radius: 14px;
-      padding: 10px;
-      background: #f8fafc;
-      position:relative;
+      min-height: 230px;
+      border:2px dashed #cbd5e1;
+      border-radius:14px;
+      padding:10px;
+      background:#f8fafc;
     }
     .bucket.dragover { border-color:#111827; background:#eef2ff; }
     .bucketTitle { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
@@ -80,16 +97,8 @@
     .choice.selected { outline: 2px solid #111827; }
     .choice small { color:var(--muted); }
 
-    .twistBox { display:none; margin-top:10px; border:1px solid #f59e0b; background:#fffbeb; padding:10px; border-radius:12px; }
-    .twistBox.show { display:block; }
-
-    .scoreBox { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .metric { background:#111827; color:#fff; border-radius:12px; padding:10px 12px; }
-    .metric span { display:block; font-size:12px; opacity:.85; }
-    .metric b { display:block; font-size:16px; margin-top:2px; }
-
-    .toast { margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:#fff; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .toast { margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:#fff; display:none; }
+    hr { border:none;border-top:1px solid var(--line); margin:14px 0; }
   </style>
 </head>
 <body>
@@ -97,7 +106,10 @@
   <div class="row">
     <h1>🔎 RRL Detective: Research Crime Scene</h1>
     <div class="controls">
-      <div class="badge" id="timerBadge">⏳ Twist in <span class="mono" id="timerText">15:00</span></div>
+      <div class="badge" id="timerBadge">
+        ⏱️ Game: <span class="mono" id="gameTimer">20:00</span> |
+        Twist: <span class="mono" id="twistTimer">10:00</span>
+      </div>
       <button class="ghost" id="startBtn" onclick="startGame()">Start</button>
       <button class="ghost" onclick="resetAll()">Reset</button>
     </div>
@@ -106,158 +118,191 @@
 
 <div class="container">
   <div class="grid cols">
-    <!-- LEFT: Setup & Evidence -->
+    <!-- LEFT -->
     <div class="panel">
-      <h2>1) Team + Case</h2>
-      <p>Mostly clicking + dragging. Minimal typing.</p>
-      <input id="teamName" type="text" placeholder="Team name (optional)" />
-      <div class="caseList" id="caseList"></div>
+      <h2>1) Team + Random Case</h2>
+      <p>Click to get a case (random). This mirrors how RRL starts: you begin with a <b>research problem</b>, then gather evidence.</p>
 
-      <div class="twistBox" id="twistBox">
-        <b>🚨 Twist Evidence Released!</b>
-        <p class="small" id="twistText"></p>
-        <button class="secondary" onclick="addTwistCards()">Add Twist Cards to Evidence</button>
+      <input id="teamName" type="text" placeholder="Team name (optional)" />
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="primary" id="randCaseBtn" onclick="assignRandomCase()">🎲 Get Random Case</button>
+        <button class="secondary" id="changeCaseBtn" onclick="forceChangeCase()" disabled>Change Case (disabled)</button>
       </div>
 
-      <hr style="border:none;border-top:1px solid var(--line); margin:14px 0;">
+      <div class="callout" style="margin-top:12px;">
+        <b id="caseTitle">No case yet</b>
+        <div class="small" id="caseSubtitle" style="margin-top:6px;">Click “Get Random Case” to begin.</div>
+      </div>
+
+      <div class="callout" style="margin-top:10px;">
+        <b>Research Problem (What you are trying to answer)</b>
+        <div class="small" id="problemText" style="margin-top:6px;">—</div>
+      </div>
+
+      <div class="callout" style="margin-top:10px;">
+        <b>What to look for (RRL skills)</b>
+        <ul id="lookForList"></ul>
+      </div>
+
+      <div class="twistBox" id="twistBox">
+        <b>🚨 Twist Unlocked (10-minute mark)</b>
+        <p class="small" id="twistText"></p>
+        <button class="secondary" onclick="addTwistCards()">Add Twist Evidence</button>
+      </div>
+
+      <hr>
 
       <h2>2) Evidence Folders</h2>
-      <p>Click folders to open evidence (like opening files in a case).</p>
+      <p>Click folders to open evidence. Drag cards into the board buckets.</p>
       <div class="folders" id="folders"></div>
 
-      <hr style="border:none;border-top:1px solid var(--line); margin:14px 0;">
+      <hr>
 
       <h2>3) Evidence Tray</h2>
-      <p>Drag evidence cards into the board buckets.</p>
       <div class="evidenceTray" id="tray" ondragover="allowDrop(event)" ondrop="dropToTray(event)"></div>
-      <p class="hint">Tip: If you want to “undo,” drag a card back to the tray.</p>
+      <p class="hint">Undo: drag any card back to the tray.</p>
     </div>
 
-    <!-- RIGHT: Board + Gap Selection -->
+    <!-- RIGHT -->
     <div class="panel">
       <h2>Investigation Board</h2>
-      <div class="scoreBox" style="margin:10px 0 12px;">
+
+      <div class="scoreBox">
         <div class="metric"><span>Score</span><b id="scoreNum">0</b></div>
         <div class="metric"><span>Cards Sorted</span><b id="sortedNum">0</b></div>
-        <div class="metric"><span>Gap Choice</span><b id="gapPick">None</b></div>
+        <div class="metric"><span>Gap Pick</span><b id="gapPick">None</b></div>
       </div>
 
       <div class="board">
         <div class="bucket" id="bucketThemes" ondragover="bucketOver(event)" ondragleave="bucketLeave(event)" ondrop="dropToBucket(event, 'themes')">
-          <div class="bucketTitle">
-            <b>✅ Themes / What we know</b>
-            <span class="pill" id="countThemes">0</span>
-          </div>
+          <div class="bucketTitle"><b>✅ Themes / What we know</b><span class="pill" id="countThemes">0</span></div>
           <div class="bucketInner" id="innerThemes"></div>
-          <p class="hint">Evidence that agrees or repeats a common pattern.</p>
+          <p class="hint">Common findings or repeated patterns.</p>
         </div>
 
         <div class="bucket" id="bucketContradictions" ondragover="bucketOver(event)" ondragleave="bucketLeave(event)" ondrop="dropToBucket(event, 'contradictions')">
-          <div class="bucketTitle">
-            <b>⚠️ Contradictions / Mixed results</b>
-            <span class="pill" id="countContradictions">0</span>
-          </div>
+          <div class="bucketTitle"><b>⚠️ Contradictions / Mixed results</b><span class="pill" id="countContradictions">0</span></div>
           <div class="bucketInner" id="innerContradictions"></div>
-          <p class="hint">Evidence that clashes with others, or depends on context/type.</p>
+          <p class="hint">Conflicts, context differences, or “depends on…” evidence.</p>
         </div>
 
         <div class="bucket" id="bucketGaps" ondragover="bucketOver(event)" ondragleave="bucketLeave(event)" ondrop="dropToBucket(event, 'gaps')">
-          <div class="bucketTitle">
-            <b>🕳️ Gap Clues / Missing evidence</b>
-            <span class="pill" id="countGaps">0</span>
-          </div>
+          <div class="bucketTitle"><b>🕳️ Gap Clues / Missing evidence</b><span class="pill" id="countGaps">0</span></div>
           <div class="bucketInner" id="innerGaps"></div>
-          <p class="hint">Evidence that suggests what’s missing: population, design, context, time.</p>
+          <p class="hint">Missing population, method, time period, measures, mechanisms.</p>
         </div>
       </div>
 
-      <hr style="border:none;border-top:1px solid var(--line); margin:14px 0;">
+      <hr>
 
       <h2>Gap Pick (Click Only)</h2>
-      <p>Pick the best research gap statement. No essay needed.</p>
+      <p>After sorting evidence, pick the best research gap statement.</p>
       <div class="choices" id="choices"></div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
-        <button class="primary" onclick="submit()">Submit Plan</button>
-        <button class="secondary" onclick="autoHint()">Give a Hint</button>
+        <button class="primary" id="submitBtn" onclick="submit()" disabled>Submit</button>
+        <button class="secondary" onclick="autoHint()">Hint</button>
       </div>
 
-      <div id="result" class="toast" style="display:none;"></div>
+      <div id="result" class="toast"></div>
     </div>
   </div>
 </div>
 
 <script>
-/** -------------------------
- * DATA: CASES
- * Each evidence card has tags that define where it "belongs":
- * - theme / contradiction / gap
- * We score based on correct placement + gap choice.
- * ------------------------- */
+/** =========================
+ * GAME RULES
+ * - Total time: 20:00
+ * - Twist unlock: 10:00 mark (i.e., after 10 minutes elapsed)
+ * ========================= */
+const TOTAL_SECONDS = 20 * 60;
+const TWIST_UNLOCK_AT_REMAINING = 10 * 60; // when remaining hits 10:00, twist unlocks
 
+/** -------------------------
+ * CASE DATA: now includes PROBLEM + LOOK-FOR guidance
+ * ------------------------- */
 const CASES = [
   {
     id: "socialmedia",
-    title: "Case 1: Social Media & Academic Performance",
+    title: "Case: Social Media & Academic Performance",
+    subtitle: "A school committee wants evidence-based guidance for students.",
+    problem: "You are asked to propose a research direction: What does the literature really say about social media use and academic performance, and what is still missing that a new study should address?",
+    lookFor: [
+      "Patterns: do studies agree on the direction (positive/negative/no effect)?",
+      "Conditions: when does the effect change (type of use, context, population)?",
+      "Limitations: are studies outdated or weak in design (cross-sectional only)?",
+      "Missing evidence: what has not been tested or compared properly?",
+      "Gap output: a specific gap, not a generic 'limited research' statement."
+    ],
     folders: [
       { id:"F1", name:"Folder A: Core Findings", cards: [
-        { id:"A1", title:"Study A (Survey)", text:"500 college students: heavy social media use linked to lower GPA.", tags:["contradiction"], meta:["Population: college","Method: survey"] },
-        { id:"A2", title:"Study B (Context)", text:"No significant link, but sample is private universities only.", tags:["contradiction","gap"], meta:["Context: private-only","Limits generalization"] },
+        { id:"A1", title:"Study A (Survey)", text:"500 college students: heavy social media use linked to lower GPA.", tags:["contradiction"], meta:["College sample","Survey"] },
+        { id:"A2", title:"Study B (Context)", text:"No significant link, but sample is private universities only.", tags:["contradiction","gap"], meta:["Private-only context","Generalizability issue"] },
         { id:"A3", title:"Study C (Usage Type)", text:"Passive scrolling harms performance more than active use.", tags:["theme","gap"], meta:["Type matters","Mechanism clue"] },
       ]},
       { id:"F2", name:"Folder B: Different Angles", cards: [
         { id:"B1", title:"Study D (Positive Pathway)", text:"Active academic networking on social media can improve grades.", tags:["contradiction","gap"], meta:["Active use differs","Moderation clue"] },
         { id:"B2", title:"Study E (Population)", text:"High school students only; findings may not apply to college.", tags:["gap"], meta:["Population mismatch"] },
-        { id:"B3", title:"Study F (Old Data)", text:"2012 dataset. Before current platforms & post-pandemic habits.", tags:["gap"], meta:["Time period outdated"] },
+        { id:"B3", title:"Study F (Old Data)", text:"2012 dataset. Before current platforms & post-pandemic habits.", tags:["gap"], meta:["Outdated time period"] },
       ]},
-      { id:"F3", name:"Folder C: Methods & Limits", cards: [
-        { id:"C1", title:"Method Note", text:"Most studies are cross-sectional (one-time surveys).", tags:["gap"], meta:["Design limitation: no causality"] },
-        { id:"C2", title:"Measure Note", text:"Some studies measure 'screen time' only, not type of engagement.", tags:["gap"], meta:["Measurement gap"] },
+      { id:"F3", name:"Folder C: Methods & Measures", cards: [
+        { id:"C1", title:"Method Note", text:"Most studies are cross-sectional (one-time surveys).", tags:["gap"], meta:["Design limitation","No causality"] },
+        { id:"C2", title:"Measure Note", text:"Many studies measure 'screen time' only, not engagement type.", tags:["gap"], meta:["Measurement gap"] },
       ]},
     ],
     twist: {
-      text: "A 2024 meta-analysis reports mixed effects depending on passive vs active use and context; cross-sectional designs limit causal conclusions.",
+      text: "New evidence: A 2024 meta-analysis shows mixed effects depending on passive vs active use and context; it recommends stronger designs for causal inference.",
       cards: [
-        { id:"T1", title:"Twist: Meta-analysis (2024)", text:"Mixed effects vary by passive vs active engagement and context.", tags:["contradiction","gap"], meta:["Synthesis evidence"] },
-        { id:"T2", title:"Twist: Design Problem", text:"Calls for longitudinal/experimental designs to test causality.", tags:["gap"], meta:["Design gap reinforced"] }
+        { id:"T1", title:"Twist (Meta-analysis 2024)", text:"Effects vary by passive vs active engagement and context.", tags:["contradiction","gap"], meta:["Synthesis evidence"] },
+        { id:"T2", title:"Twist (Design Recommendation)", text:"Calls for longitudinal/experimental designs to test causality.", tags:["gap"], meta:["Design gap reinforced"] }
       ]
     },
     gapChoices: [
-      { id:"G1", label:"Weak Gap (too broad)", text:"There is limited research on social media and academic performance.", best:false },
-      { id:"G2", label:"Better Gap (specific)", text:"Research is mixed because studies rarely distinguish passive vs active use; more evidence is needed using updated post-pandemic data and stronger designs (e.g., longitudinal).", best:true },
-      { id:"G3", label:"So-so Gap (partial)", text:"More research is needed on college students in the Philippines.", best:false },
-      { id:"G4", label:"Better Gap (context + measurement)", text:"Most studies measure time spent, not engagement type; the gap is how different engagement types shape outcomes across contexts.", best:true }
+      { id:"G1", label:"Weak Gap", text:"There is limited research on social media and academic performance.", best:false },
+      { id:"G2", label:"Strong Gap (specific + design)", text:"Findings are mixed partly because many studies do not distinguish passive vs active use and rely on cross-sectional surveys; updated post-pandemic, stronger designs (e.g., longitudinal) are needed.", best:true },
+      { id:"G3", label:"So-so Gap", text:"More research is needed on college students in the Philippines.", best:false },
+      { id:"G4", label:"Strong Gap (measurement + context)", text:"The gap is how engagement type (not just time spent) relates to academic outcomes across different contexts (e.g., public vs private) using consistent measures.", best:true }
     ]
   },
 
   {
     id: "digitalbank",
-    title: "Case 2: Digital Loan Applications & Financial Inclusion",
+    title: "Case: Digital Loan Applications & Financial Inclusion",
+    subtitle: "A development group wants to know if digital loan apps exclude low-income applicants.",
+    problem: "You are asked to recommend a research direction: Are digital loan application processes financially inclusive for low-income households, or do they create barriers? What specific evidence is missing to answer this properly?",
+    lookFor: [
+      "Evidence of inclusion vs exclusion (mixed outcomes).",
+      "Where barriers occur in the process (steps where people drop off).",
+      "Who is excluded (income, literacy, rural/urban).",
+      "What is not measured (reasons for drop-off/rejection).",
+      "Gap output: a gap that points to process-level evidence and comparisons."
+    ],
     folders: [
       { id:"F1", name:"Folder A: Process Barriers", cards: [
-        { id:"A1", title:"Study A (UX barrier)", text:"KYC steps and document uploads exclude low-connectivity users.", tags:["theme","gap"], meta:["Digital barrier"] },
+        { id:"A1", title:"Study A (UX barrier)", text:"KYC steps and document uploads exclude low-connectivity users.", tags:["theme","gap"], meta:["Barrier: connectivity","KYC friction"] },
         { id:"A2", title:"Study B (Positive access)", text:"Digital loans can increase access for previously unbanked users.", tags:["contradiction"], meta:["Inclusion benefit"] },
       ]},
       { id:"F2", name:"Folder B: Who Gets Left Out?", cards: [
-        { id:"B1", title:"Study C (Income)", text:"Lower-income users face higher drop-off rates during onboarding.", tags:["theme","gap"], meta:["Income-linked barrier"] },
-        { id:"B2", title:"Study D (Literacy)", text:"Low digital literacy predicts failure to complete applications.", tags:["theme","gap"], meta:["Skill barrier"] },
+        { id:"B1", title:"Study C (Income)", text:"Lower-income users show higher drop-off during onboarding.", tags:["theme","gap"], meta:["Income-linked barrier"] },
+        { id:"B2", title:"Study D (Literacy)", text:"Low digital literacy predicts failure to complete applications.", tags:["theme","gap"], meta:["Skills barrier"] },
       ]},
       { id:"F3", name:"Folder C: Research Limits", cards: [
-        { id:"C1", title:"Method Note", text:"Most studies report approval rates but not reasons for rejection or abandonment.", tags:["gap"], meta:["Missing process-level evidence"] },
-        { id:"C2", title:"Equity Note", text:"Few studies compare rural vs urban applicants for the same product.", tags:["gap"], meta:["Context comparison missing"] },
+        { id:"C1", title:"Method Note", text:"Most studies report approval rates but not where/why users abandon.", tags:["gap"], meta:["Missing process-level evidence"] },
+        { id:"C2", title:"Equity Note", text:"Few studies compare rural vs urban applicants for same product.", tags:["gap"], meta:["Context comparison missing"] },
       ]},
     ],
     twist: {
-      text: "A new policy update requires stricter KYC; early reports show higher abandonment among low-income applicants.",
+      text: "New evidence: Stricter KYC policy update increases abandonment among low-income users. This strengthens the need to study how policy interacts with literacy/connectivity.",
       cards: [
-        { id:"T1", title:"Twist: Policy Update", text:"Stricter KYC increases abandonment among low-income users.", tags:["theme","gap"], meta:["New structural constraint"] },
+        { id:"T1", title:"Twist (Policy Update)", text:"Stricter KYC increases abandonment among low-income users.", tags:["theme","gap"], meta:["New structural constraint"] }
       ]
     },
     gapChoices: [
       { id:"G1", label:"Weak Gap", text:"There is limited research on digital loans.", best:false },
-      { id:"G2", label:"Better Gap (process-level)", text:"Existing studies focus on outcomes (approval) but lack process-level evidence on where and why low-income users drop out; comparative analysis across contexts is missing.", best:true },
+      { id:"G2", label:"Strong Gap (process-level)", text:"Most studies focus on outcomes (approval) but lack process-level evidence on where/why low-income users drop out; comparisons across contexts (rural/urban, connectivity levels) are missing.", best:true },
       { id:"G3", label:"So-so Gap", text:"More research is needed on digital banking in general.", best:false },
-      { id:"G4", label:"Better Gap (equity lens)", text:"The gap is how policy/KYC requirements interact with digital literacy and connectivity to create unequal access across rural vs urban applicants.", best:true }
+      { id:"G4", label:"Strong Gap (policy + equity)", text:"The gap is how KYC policy requirements interact with literacy and connectivity to create unequal access across rural vs urban applicants.", best:true }
     ]
   }
 ];
@@ -265,66 +310,101 @@ const CASES = [
 /** -------------------------
  * STATE
  * ------------------------- */
-let activeCase = CASES[0];
+let activeCase = null;
 let started = false;
-let remaining = 15 * 60;
+let remaining = TOTAL_SECONDS;
 let timer = null;
-let twistReleased = false;
+let twistUnlocked = false;
+let twistAdded = false;
 
-let selectedGap = null; // id
+let selectedGap = null;
 let score = 0;
+let caseAssigned = false;
 
 /** -------------------------
- * INIT UI
+ * UI ELEMENTS
  * ------------------------- */
-function init() {
-  renderCases();
-  setCase(activeCase.id);
-  updateMetrics();
-  updateTimerUI();
-}
-init();
+const el = (id) => document.getElementById(id);
 
-function renderCases(){
-  const caseList = document.getElementById("caseList");
-  caseList.innerHTML = "";
-  CASES.forEach(c => {
-    const btn = document.createElement("button");
-    btn.className = "caseBtn";
-    btn.textContent = c.title;
-    btn.onclick = () => setCase(c.id);
-    btn.id = "caseBtn_" + c.id;
-    caseList.appendChild(btn);
-  });
+function initUI(){
+  updateTimersUI();
+  clearBoardAndTray();
+  renderEmptyFolders();
+  renderEmptyChoices();
+}
+initUI();
+
+/** -------------------------
+ * RANDOM CASE ASSIGNMENT
+ * ------------------------- */
+function assignRandomCase(){
+  if (caseAssigned) return;
+
+  const idx = Math.floor(Math.random() * CASES.length);
+  setCase(CASES[idx].id);
+
+  caseAssigned = true;
+  el("randCaseBtn").disabled = true;
+  el("changeCaseBtn").disabled = true; // kept disabled per your request (avoid reroll)
+  el("submitBtn").disabled = false; // allow submit once they work
+
+  // Encourage start
+  if (!started){
+    showToast("✅ Case assigned. Click <b>Start</b> to begin the 20-minute timer.");
+  }
+}
+
+function forceChangeCase(){
+  // intentionally disabled in this version
 }
 
 function setCase(caseId){
   activeCase = CASES.find(c => c.id === caseId);
-  document.querySelectorAll(".caseBtn").forEach(b => b.classList.remove("active"));
-  document.getElementById("caseBtn_" + caseId).classList.add("active");
 
-  // Reset board + tray + choices for new case
+  // Populate case guidance
+  el("caseTitle").textContent = activeCase.title;
+  el("caseSubtitle").textContent = activeCase.subtitle;
+  el("problemText").textContent = activeCase.problem;
+
+  const ul = el("lookForList");
+  ul.innerHTML = "";
+  activeCase.lookFor.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    ul.appendChild(li);
+  });
+
+  // Reset game elements for new case
   clearBoardAndTray();
   renderFolders();
   renderChoices();
-  hideTwist();
-  twistReleased = false;
+  hideTwistBox();
+  twistUnlocked = false;
+  twistAdded = false;
   selectedGap = null;
   score = 0;
   updateMetrics();
 }
 
+/** -------------------------
+ * FOLDERS + EVIDENCE
+ * ------------------------- */
+function renderEmptyFolders(){
+  el("folders").innerHTML = `<div class="small">No case yet. Click “Get Random Case”.</div>`;
+}
 function renderFolders(){
-  const folders = document.getElementById("folders");
+  const folders = el("folders");
   folders.innerHTML = "";
   activeCase.folders.forEach(f => {
     const box = document.createElement("div");
     box.className = "folder";
+
     const head = document.createElement("div");
     head.className = "folderHead";
 
     const left = document.createElement("div");
-    left.innerHTML = `<b>📁 ${f.name}</b><div class="small">${f.cards.length} evidence cards</div>`;
+    left.innerHTML = `<b>📁 ${escapeHTML(f.name)}</b><div class="small">${f.cards.length} evidence cards</div>`;
+
     const pill = document.createElement("span");
     pill.className = "pill";
     pill.textContent = "Open";
@@ -332,40 +412,16 @@ function renderFolders(){
     head.appendChild(left);
     head.appendChild(pill);
 
-    const btnRow = document.createElement("div");
-    btnRow.style.marginTop = "10px";
+    const btn = document.createElement("button");
+    btn.className = "secondary";
+    btn.textContent = "Open Folder";
+    btn.style.marginTop = "10px";
+    btn.onclick = () => openFolder(f.id);
 
-    const openBtn = document.createElement("button");
-    openBtn.className = "secondary";
-    openBtn.textContent = "Open Folder";
-    openBtn.onclick = () => openFolder(f.id);
-
-    btnRow.appendChild(openBtn);
     box.appendChild(head);
-    box.appendChild(btnRow);
-
+    box.appendChild(btn);
     folders.appendChild(box);
   });
-}
-
-function renderChoices(){
-  const choices = document.getElementById("choices");
-  choices.innerHTML = "";
-  activeCase.gapChoices.forEach(ch => {
-    const div = document.createElement("div");
-    div.className = "choice";
-    div.id = "choice_" + ch.id;
-    div.innerHTML = `<b>${ch.label}</b><br><small>${escapeHTML(ch.text)}</small>`;
-    div.onclick = () => pickGap(ch.id);
-    choices.appendChild(div);
-  });
-}
-
-function pickGap(id){
-  selectedGap = id;
-  document.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
-  document.getElementById("choice_" + id).classList.add("selected");
-  updateMetrics();
 }
 
 function openFolder(folderId){
@@ -374,114 +430,65 @@ function openFolder(folderId){
 }
 
 function addCardToTray(card){
-  // Avoid duplicates
-  if (document.getElementById("card_" + card.id)) return;
+  if (el("card_" + card.id)) return;
 
-  const el = document.createElement("div");
-  el.className = "card";
-  el.id = "card_" + card.id;
-  el.draggable = true;
-  el.ondragstart = (e) => dragStart(e, card.id);
+  const div = document.createElement("div");
+  div.className = "card";
+  div.id = "card_" + card.id;
+  div.draggable = true;
+  div.ondragstart = (e) => dragStart(e, card.id);
 
-  el.innerHTML = `
+  div.innerHTML = `
     <b>${escapeHTML(card.title)}</b>
     <div class="small" style="margin-top:6px;">${escapeHTML(card.text)}</div>
-    <div class="tagRow">
-      ${card.meta.map(m => `<span class="tag">${escapeHTML(m)}</span>`).join("")}
-    </div>
+    <div class="tagRow">${(card.meta||[]).map(m => `<span class="tag">${escapeHTML(m)}</span>`).join("")}</div>
   `;
-  document.getElementById("tray").appendChild(el);
+  el("tray").appendChild(div);
   updateMetrics();
 }
 
 /** -------------------------
- * DRAG & DROP
+ * DRAG/DROP
  * ------------------------- */
-function dragStart(e, cardId){
-  e.dataTransfer.setData("text/plain", cardId);
-}
-
+function dragStart(e, cardId){ e.dataTransfer.setData("text/plain", cardId); }
 function allowDrop(e){ e.preventDefault(); }
 
-function bucketOver(e){
-  e.preventDefault();
-  e.currentTarget.classList.add("dragover");
-}
-function bucketLeave(e){
-  e.currentTarget.classList.remove("dragover");
-}
+function bucketOver(e){ e.preventDefault(); e.currentTarget.classList.add("dragover"); }
+function bucketLeave(e){ e.currentTarget.classList.remove("dragover"); }
 
 function dropToTray(e){
   e.preventDefault();
-  const cardId = e.dataTransfer.getData("text/plain");
-  const cardEl = document.getElementById("card_" + cardId);
+  const id = e.dataTransfer.getData("text/plain");
+  const cardEl = el("card_" + id);
   if (!cardEl) return;
-  document.getElementById("tray").appendChild(cardEl);
+  el("tray").appendChild(cardEl);
   updateCountsAndScore();
 }
 
 function dropToBucket(e, bucket){
   e.preventDefault();
   e.currentTarget.classList.remove("dragover");
-  const cardId = e.dataTransfer.getData("text/plain");
-  const cardEl = document.getElementById("card_" + cardId);
+  const id = e.dataTransfer.getData("text/plain");
+  const cardEl = el("card_" + id);
   if (!cardEl) return;
 
   const inner = {
-    themes: document.getElementById("innerThemes"),
-    contradictions: document.getElementById("innerContradictions"),
-    gaps: document.getElementById("innerGaps")
+    themes: el("innerThemes"),
+    contradictions: el("innerContradictions"),
+    gaps: el("innerGaps")
   }[bucket];
 
   inner.appendChild(cardEl);
   updateCountsAndScore();
 }
 
-function updateCountsAndScore(){
-  // counts
-  const ctThemes = document.getElementById("innerThemes").children.length;
-  const ctContr = document.getElementById("innerContradictions").children.length;
-  const ctGaps = document.getElementById("innerGaps").children.length;
-
-  document.getElementById("countThemes").textContent = ctThemes;
-  document.getElementById("countContradictions").textContent = ctContr;
-  document.getElementById("countGaps").textContent = ctGaps;
-
-  // scoring by checking each card's "correct" buckets
-  score = 0;
-  const placements = [
-    ["themes","innerThemes"],
-    ["contradictions","innerContradictions"],
-    ["gaps","innerGaps"]
-  ];
-
-  // Map cardId -> tags
-  const tagMap = buildTagMap();
-
-  placements.forEach(([bucket, innerId]) => {
-    const inner = document.getElementById(innerId);
-    [...inner.children].forEach(el => {
-      const cid = el.id.replace("card_","");
-      const tags = tagMap[cid] || [];
-      // +10 if bucket is among tags, else +0
-      if (tags.includes(bucket)) score += 10;
-      // small bonus: if it's also a "gap" clue and placed in gaps bucket
-      if (bucket === "gaps" && tags.includes("gap")) score += 2;
-    });
-  });
-
-  updateMetrics();
-}
-
 function buildTagMap(){
   const map = {};
   const allCards = [];
   activeCase.folders.forEach(f => allCards.push(...f.cards));
-  if (twistReleased) allCards.push(...activeCase.twist.cards);
+  if (twistAdded) allCards.push(...activeCase.twist.cards);
 
   allCards.forEach(c => {
-    // convert our tag labels to bucket labels
-    // tags might contain "theme"/"contradiction"/"gap" but we use buckets "themes"/"contradictions"/"gaps"
     const t = [];
     if (c.tags.includes("theme")) t.push("themes");
     if (c.tags.includes("contradiction")) t.push("contradictions");
@@ -491,82 +498,164 @@ function buildTagMap(){
   return map;
 }
 
+function updateCountsAndScore(){
+  const ctThemes = el("innerThemes").children.length;
+  const ctContr = el("innerContradictions").children.length;
+  const ctGaps = el("innerGaps").children.length;
+
+  el("countThemes").textContent = ctThemes;
+  el("countContradictions").textContent = ctContr;
+  el("countGaps").textContent = ctGaps;
+
+  score = 0;
+  const tagMap = buildTagMap();
+  const placements = [
+    ["themes","innerThemes"],
+    ["contradictions","innerContradictions"],
+    ["gaps","innerGaps"]
+  ];
+
+  placements.forEach(([bucket, innerId]) => {
+    const inner = el(innerId);
+    [...inner.children].forEach(node => {
+      const cid = node.id.replace("card_","");
+      const tags = tagMap[cid] || [];
+      if (tags.includes(bucket)) score += 10;
+    });
+  });
+
+  updateMetrics();
+}
+
 /** -------------------------
- * TIMER + TWIST
+ * GAP CHOICES (click-only)
+ * ------------------------- */
+function renderEmptyChoices(){
+  el("choices").innerHTML = `<div class="small">No case yet. Get a random case first.</div>`;
+}
+function renderChoices(){
+  const choices = el("choices");
+  choices.innerHTML = "";
+  activeCase.gapChoices.forEach(ch => {
+    const div = document.createElement("div");
+    div.className = "choice";
+    div.id = "choice_" + ch.id;
+    div.innerHTML = `<b>${escapeHTML(ch.label)}</b><br><small>${escapeHTML(ch.text)}</small>`;
+    div.onclick = () => pickGap(ch.id);
+    choices.appendChild(div);
+  });
+}
+function pickGap(id){
+  selectedGap = id;
+  document.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
+  el("choice_" + id).classList.add("selected");
+  updateMetrics();
+}
+
+/** -------------------------
+ * TIMERS: 20-min game, twist at 10-min mark
  * ------------------------- */
 function startGame(){
   if (started) return;
+  if (!activeCase){
+    showToast("⚠️ Please click <b>Get Random Case</b> first.");
+    return;
+  }
+
   started = true;
-  document.getElementById("startBtn").disabled = true;
+  el("startBtn").disabled = true;
 
   timer = setInterval(() => {
     remaining -= 1;
+
+    // Twist unlock when remaining hits 10:00
+    if (!twistUnlocked && remaining <= TWIST_UNLOCK_AT_REMAINING){
+      unlockTwist();
+    }
+
     if (remaining <= 0){
       remaining = 0;
-      clearInterval(timer);
-      releaseTwist();
+      endGame();
     }
-    updateTimerUI();
+
+    updateTimersUI();
   }, 1000);
 
-  updateTimerUI();
+  showToast("⏱️ Game started. You have 20 minutes. Twist unlocks at 10-minute mark.");
+  updateTimersUI();
 }
 
-function updateTimerUI(){
-  const t = document.getElementById("timerText");
-  const m = Math.floor(remaining / 60);
-  const s = remaining % 60;
-  t.textContent = String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
-  if (remaining === 0){
-    document.getElementById("timerBadge").textContent = "🚨 Twist Released!";
+function updateTimersUI(){
+  // Game timer
+  el("gameTimer").textContent = fmt(remaining);
+
+  // Twist timer display
+  if (!twistUnlocked){
+    const untilTwist = Math.max(remaining - TWIST_UNLOCK_AT_REMAINING, 0);
+    el("twistTimer").textContent = fmt(untilTwist);
+  } else {
+    el("twistTimer").textContent = "UNLOCKED";
   }
 }
 
-function releaseTwist(){
-  twistReleased = true;
-  const box = document.getElementById("twistBox");
-  document.getElementById("twistText").textContent = activeCase.twist.text;
-  box.classList.add("show");
+function unlockTwist(){
+  twistUnlocked = true;
+  el("twistText").textContent = activeCase.twist.text;
+  el("twistBox").classList.add("show");
+  showToast("🚨 Twist unlocked! Add new evidence and adjust your synthesis.");
 }
 
 function addTwistCards(){
-  if (!twistReleased) return;
+  if (!twistUnlocked || twistAdded) return;
   activeCase.twist.cards.forEach(c => addCardToTray(c));
-  document.getElementById("twistBox").scrollIntoView({behavior:"smooth", block:"start"});
+  twistAdded = true;
+  showToast("✅ Twist evidence added to tray.");
 }
 
-function hideTwist(){
-  document.getElementById("twistBox").classList.remove("show");
+function hideTwistBox(){
+  el("twistBox").classList.remove("show");
+}
+
+function endGame(){
+  if (timer) clearInterval(timer);
+  el("timerBadge").textContent = "⏱️ Time is up! Submit now.";
+  el("submitBtn").disabled = false;
+  showToast("⏱️ Time is up. Click <b>Submit</b> now.");
 }
 
 /** -------------------------
- * SUBMIT + HINT (click-only)
+ * SUBMIT
  * ------------------------- */
 function submit(){
-  const team = (document.getElementById("teamName").value || "").trim() || "Unnamed Team";
+  if (!activeCase){
+    showToast("⚠️ No case yet. Click <b>Get Random Case</b>.");
+    return;
+  }
 
-  // gap scoring
+  const team = (el("teamName").value || "").trim() || "Unnamed Team";
+
+  // Board score already computed
   let gapScore = 0;
   if (selectedGap){
     const ch = activeCase.gapChoices.find(x => x.id === selectedGap);
     gapScore = ch.best ? 30 : 10;
+  } else {
+    gapScore = 0;
   }
 
-  // bonus if twist released and they used twist cards (placed any T-card not in tray)
+  // Twist bonus if twist is unlocked AND they added twist evidence AND used at least one T-card on board
   let twistBonus = 0;
-  if (twistReleased){
-    const usedTwist = ["innerThemes","innerContradictions","innerGaps"].some(innerId => {
-      return [...document.getElementById(innerId).children].some(el => el.id.includes("card_T"));
+  if (twistUnlocked && twistAdded){
+    const usedTwist = ["innerThemes","innerContradictions","innerGaps"].some(id => {
+      return [...el(id).children].some(node => node.id.includes("card_T"));
     });
     if (usedTwist) twistBonus = 10;
   }
 
   const total = score + gapScore + twistBonus;
-
-  // shareable code (local only)
   const code = makeCode(team, total);
 
-  const result = document.getElementById("result");
+  const result = el("result");
   result.style.display = "block";
   result.innerHTML = `
     <b>✅ Submission Complete</b><br>
@@ -581,88 +670,105 @@ function submit(){
   result.scrollIntoView({behavior:"smooth", block:"start"});
 }
 
+/** -------------------------
+ * HINT
+ * ------------------------- */
 function autoHint(){
-  // click-only hint: recommend next action based on counts
-  const trayCount = document.getElementById("tray").children.length;
-  const gapPicked = !!selectedGap;
-  const twistMsg = twistReleased ? "Twist is released: consider adding Twist cards." : "Twist not yet released: keep sorting evidence.";
+  if (!activeCase){
+    showToast("Hint: click <b>Get Random Case</b> first.");
+    return;
+  }
+  const trayCount = el("tray").children.length;
+  const sorted = ["innerThemes","innerContradictions","innerGaps"].reduce((acc,id)=> acc + el(id).children.length, 0);
 
   let msg = "";
-  if (trayCount > 0){
-    msg = "Hint: Drag at least 3 evidence cards into the board (Themes / Contradictions / Gap Clues).";
-  } else if (!gapPicked){
-    msg = "Hint: Choose the strongest Gap statement (look for: type of engagement, context, design, updated data).";
+  if (sorted < 3){
+    msg = "Drag at least 3 evidence cards into the buckets. Look for patterns vs contradictions vs missing evidence.";
+  } else if (!selectedGap){
+    msg = "Choose a Gap statement. Strong gaps mention: conditions (type/context), missing comparisons, or weak designs/measures.";
+  } else if (twistUnlocked && !twistAdded){
+    msg = "Twist is unlocked: add Twist evidence and see if it changes your gap.";
   } else {
-    msg = "Hint: Your gap is selected. Improve score by placing cards in the best-matching buckets.";
+    msg = "Maximize score by placing cards into the best-matching buckets (Themes vs Contradictions vs Gap Clues).";
   }
-
-  const result = document.getElementById("result");
-  result.style.display = "block";
-  result.innerHTML = `<b>💡 Hint</b><br><div class="small" style="margin-top:6px;">${escapeHTML(msg)}<br>${escapeHTML(twistMsg)}</div>`;
-  result.scrollIntoView({behavior:"smooth", block:"start"});
+  showToast("💡 " + msg);
 }
 
 /** -------------------------
  * RESET
  * ------------------------- */
 function clearBoardAndTray(){
-  ["tray","innerThemes","innerContradictions","innerGaps"].forEach(id => {
-    const el = document.getElementById(id);
-    el.innerHTML = "";
-  });
-  document.getElementById("countThemes").textContent = "0";
-  document.getElementById("countContradictions").textContent = "0";
-  document.getElementById("countGaps").textContent = "0";
-  document.getElementById("result").style.display = "none";
-  document.getElementById("result").innerHTML = "";
+  ["tray","innerThemes","innerContradictions","innerGaps"].forEach(id => el(id).innerHTML = "");
+  el("countThemes").textContent = "0";
+  el("countContradictions").textContent = "0";
+  el("countGaps").textContent = "0";
+  el("result").style.display = "none";
+  el("result").innerHTML = "";
 }
-
 function resetAll(){
-  // full reset timer + selections but keep active case
   if (timer) clearInterval(timer);
+
+  // Reset timers/state
   started = false;
-  remaining = 15 * 60;
-  document.getElementById("startBtn").disabled = false;
-  twistReleased = false;
-  hideTwist();
+  remaining = TOTAL_SECONDS;
+  twistUnlocked = false;
+  twistAdded = false;
   selectedGap = null;
   score = 0;
 
-  clearBoardAndTray();
-  renderFolders();
-  renderChoices();
-  updateTimerUI();
-  updateMetrics();
+  // Reset case assignment
+  activeCase = null;
+  caseAssigned = false;
+
+  // UI reset
+  el("startBtn").disabled = false;
+  el("randCaseBtn").disabled = false;
+  el("changeCaseBtn").disabled = true;
+  el("submitBtn").disabled = true;
+
+  el("timerBadge").innerHTML = `⏱️ Game: <span class="mono" id="gameTimer">20:00</span> | Twist: <span class="mono" id="twistTimer">10:00</span>`;
+  // re-bind ids after reset (since we replaced innerHTML)
+  // easiest: reload page, but we’ll just reselect by resetting via location? no.
+  // Instead: don’t replace timerBadge in production. For simplicity here: do a quick soft reload.
+  location.reload();
 }
 
 /** -------------------------
  * METRICS
  * ------------------------- */
 function updateMetrics(){
-  // sorted cards = total cards not in tray
-  const sorted = ["innerThemes","innerContradictions","innerGaps"].reduce((acc,id)=> acc + document.getElementById(id).children.length, 0);
-  document.getElementById("sortedNum").textContent = sorted;
-  document.getElementById("scoreNum").textContent = score;
-  document.getElementById("gapPick").textContent = selectedGap ? selectedGap : "None";
+  const sorted = ["innerThemes","innerContradictions","innerGaps"].reduce((acc,id)=> acc + el(id).children.length, 0);
+  el("sortedNum").textContent = sorted;
+  el("scoreNum").textContent = score;
+  el("gapPick").textContent = selectedGap ? selectedGap : "None";
 
-  // keep counts consistent in case of programmatic changes
-  document.getElementById("countThemes").textContent = document.getElementById("innerThemes").children.length;
-  document.getElementById("countContradictions").textContent = document.getElementById("innerContradictions").children.length;
-  document.getElementById("countGaps").textContent = document.getElementById("innerGaps").children.length;
+  el("countThemes").textContent = el("innerThemes").children.length;
+  el("countContradictions").textContent = el("innerContradictions").children.length;
+  el("countGaps").textContent = el("innerGaps").children.length;
 }
 
 /** -------------------------
- * HELPERS
+ * UTILS
  * ------------------------- */
+function fmt(sec){
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
 function escapeHTML(str){
   return (str || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 }
 function makeCode(team, total){
-  // simple deterministic-ish code
-  const base = `${team}|${activeCase.id}|${total}|${Date.now()}`;
+  const base = `${team}|${activeCase ? activeCase.id : "nocase"}|${total}|${Date.now()}`;
   let hash = 0;
   for (let i=0;i<base.length;i++){ hash = (hash*31 + base.charCodeAt(i)) >>> 0; }
-  return `${activeCase.id.toUpperCase()}-${total}-${String(hash).slice(0,6)}`;
+  return `${(activeCase ? activeCase.id : "CASE").toUpperCase()}-${total}-${String(hash).slice(0,6)}`;
+}
+function showToast(html){
+  const t = el("result");
+  t.style.display = "block";
+  t.innerHTML = html;
+  t.scrollIntoView({behavior:"smooth", block:"start"});
 }
 </script>
 </body>
