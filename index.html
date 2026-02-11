@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>RRL Detective Game</title>
+  <style>
+    body { font-family: Arial; background: #f4f6f9; padding: 20px; }
+    .card { background: white; padding: 15px; margin: 10px 0; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .half { flex: 1; min-width: 320px; }
+    button { padding: 10px 14px; border: 0; border-radius: 8px; cursor: pointer; }
+    button.primary { background: #111827; color: white; }
+    button.secondary { background: #e5e7eb; }
+    textarea { width: 100%; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1; }
+    input { border-radius: 8px; padding: 8px; border: 1px solid #cbd5e1; width: 280px; }
+    #timerBox { display: inline-block; padding: 10px 14px; border-radius: 10px; background: #111827; color: white; font-weight: bold; }
+    .hidden { display: none; }
+    .tag { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; margin-left: 8px; }
+    .warn { background: #fef3c7; color: #92400e; padding: 10px 12px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>🔎 RRL Detective: The Case of the Missing Research Gap</h1>
+
+  <div class="card">
+    <div class="row" style="align-items:center; justify-content: space-between;">
+      <div>
+        <label><b>Team Name:</b></label><br>
+        <input type="text" id="teamName" placeholder="Type team name..." />
+      </div>
+      <div>
+        <div id="timerBox">⏳ Twist in 15:00</div><br>
+        <small id="timerHint">Click <b>Start Investigation</b> when you’re ready.</small>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="primary" id="startBtn" onclick="startInvestigation()">Start Investigation</button>
+      <button class="secondary" onclick="resetGame()">Reset</button>
+    </div>
+  </div>
+
+  <h2>Evidence Files</h2>
+
+  <div class="card"><b>Study A</b> <span class="tag">Survey</span><br>
+    500 college students. High social media use negatively correlated with GPA.
+  </div>
+
+  <div class="card"><b>Study B</b> <span class="tag">Context-specific</span><br>
+    No significant relationship. Conducted in private universities only.
+  </div>
+
+  <div class="card"><b>Study C</b> <span class="tag">Usage Type</span><br>
+    Passive scrolling negatively affects GPA.
+  </div>
+
+  <div class="card"><b>Study D</b> <span class="tag">Usage Type</span><br>
+    Active academic networking improves GPA.
+  </div>
+
+  <div class="card"><b>Study E</b> <span class="tag">Different Population</span><br>
+    High school students only.
+  </div>
+
+  <div class="card"><b>Study F</b> <span class="tag">Older Study</span><br>
+    Study conducted in 2012.
+  </div>
+
+  <!-- TWIST CARD (HIDDEN UNTIL TIMER ENDS) -->
+  <div class="card hidden" id="twistCard">
+    <b>🚨 TWIST EVIDENCE (Released Now)</b><br>
+    <div class="warn" style="margin-top:8px;">
+      A 2024 meta-analysis reports <b>mixed effects</b>: relationships vary depending on
+      <b>type of social media use (passive vs active)</b>, <b>context</b>, and <b>study design</b>.
+      Many studies are cross-sectional, limiting causal conclusions.
+    </div>
+    <p style="margin-top:10px;">
+      👉 Update your research gap so it reflects what is still missing or unresolved.
+    </p>
+  </div>
+
+  <h2>Investigation Report</h2>
+
+  <div class="card">
+    <label><b>What patterns do you observe?</b></label><br>
+    <textarea id="patterns" rows="3" placeholder="Example: Studies show mixed findings depending on type of use and context..."></textarea><br><br>
+
+    <label><b>What inconsistencies do you observe?</b></label><br>
+    <textarea id="inconsistencies" rows="3" placeholder="Example: Some studies show negative effects, others show none or even positive..."></textarea><br><br>
+
+    <label><b>State the REAL research gap:</b></label><br>
+    <textarea id="gap" rows="4" placeholder="Write a gap that is specific (population/context/design/type of use)..."></textarea><br><br>
+
+    <button class="primary" onclick="submitCase()">Submit Case</button>
+    <div id="result" style="margin-top:12px;"></div>
+  </div>
+
+<script>
+  // ===== Timer Settings =====
+  const TWIST_SECONDS = 15 * 60; // 15 minutes
+  let remaining = TWIST_SECONDS;
+  let timerInterval = null;
+  let started = false;
+
+  function fmtTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+  }
+
+  function updateTimerUI() {
+    const timerBox = document.getElementById("timerBox");
+    if (!started) {
+      timerBox.textContent = "⏳ Twist in 15:00";
+      return;
+    }
+    if (remaining > 0) {
+      timerBox.textContent = "⏳ Twist in " + fmtTime(remaining);
+    } else {
+      timerBox.textContent = "🚨 Twist Released!";
+    }
+  }
+
+  function startInvestigation() {
+    if (started) return;
+    started = true;
+    document.getElementById("startBtn").disabled = true;
+    document.getElementById("timerHint").textContent = "Timer is running. Twist will appear automatically.";
+
+    updateTimerUI();
+
+    timerInterval = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        remaining = 0;
+        clearInterval(timerInterval);
+        releaseTwist();
+      }
+      updateTimerUI();
+    }, 1000);
+  }
+
+  function releaseTwist() {
+    const twistCard = document.getElementById("twistCard");
+    twistCard.classList.remove("hidden");
+    // Optional: auto-scroll to the twist
+    twistCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function resetGame() {
+    // Stop timer
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    started = false;
+    remaining = TWIST_SECONDS;
+
+    // Reset UI + fields
+    document.getElementById("startBtn").disabled = false;
+    document.getElementById("timerHint").innerHTML = 'Click <b>Start Investigation</b> when you’re ready.';
+    document.getElementById("twistCard").classList.add("hidden");
+
+    document.getElementById("teamName").value = "";
+    document.getElementById("patterns").value = "";
+    document.getElementById("inconsistencies").value = "";
+    document.getElementById("gap").value = "";
+    document.getElementById("result").innerHTML = "";
+
+    updateTimerUI();
+  }
+
+  // ===== Scoring (simple starter) =====
+  function submitCase() {
+    const team = document.getElementById("teamName").value.trim() || "Unnamed Team";
+    const gap = document.getElementById("gap").value.toLowerCase();
+
+    let score = 0;
+
+    // Reward specificity
+    if (gap.includes("passive") || gap.includes("active") || gap.includes("type of use") || gap.includes("engagement")) score += 20;
+    if (gap.includes("context") || gap.includes("private") || gap.includes("philippines") || gap.includes("university")) score += 15;
+    if (gap.includes("longitudinal") || gap.includes("causal") || gap.includes("experiment") || gap.includes("design")) score += 15;
+    if (gap.includes("post-pandemic") || gap.includes("recent") || gap.includes("202")) score += 10;
+
+    // Penalize too vague
+    if (gap.length < 40) score -= 10;
+    if (gap.includes("limited research") && gap.length < 80) score -= 10; // typical weak gap phrasing
+
+    // Twist bonus if twist already released and they reference it
+    if (remaining === 0 && (gap.includes("meta") || gap.includes("mixed") || gap.includes("cross-sectional"))) score += 10;
+
+    const twistStatus = (remaining === 0) ? "✅ Twist accounted for" : "⏳ Twist not yet released";
+
+    document.getElementById("result").innerHTML = `
+      <div class="card">
+        <b>Team:</b> ${team}<br>
+        <b>Case Score:</b> ${score}<br>
+        <b>Status:</b> ${twistStatus}
+      </div>
+    `;
+  }
+
+  // Initialize
+  updateTimerUI();
+</script>
+
+</body>
+</html>
