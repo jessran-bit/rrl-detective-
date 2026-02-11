@@ -44,9 +44,9 @@
     .callout li{margin:4px 0}
     .miniDef{
       border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;
-      display:grid;gap:8px;
+      display:grid;gap:10px;
     }
-    .miniDef .def{font-size:12px;color:var(--muted);line-height:1.4}
+    .miniDef .def{font-size:12px;color:var(--muted);line-height:1.45}
     .tag{font-size:11px;padding:3px 7px;border-radius:999px;background:#f3f4f6;color:var(--ink);display:inline-block;margin-right:6px;margin-top:6px}
 
     .twistBox{display:none;margin-top:10px;border:1px solid var(--warnLine);background:var(--warn);padding:10px 12px;border-radius:12px}
@@ -98,7 +98,7 @@
     <h1>🔎 RRL Detective: Evidence → Tentative Answer → Research Gap</h1>
     <div class="badge" id="timerBadge">
       ⏱️ <b>Game:</b> <span class="mono" id="gameTimer">20:00</span>
-      &nbsp;|&nbsp; <b>Twist:</b> <span class="mono" id="twistTimer">10:00</span>
+      &nbsp;|&nbsp; <b>Twist:</b> <span class="mono" id="twistTimer">15:00</span>
     </div>
   </div>
 </header>
@@ -137,20 +137,38 @@
       </div>
 
       <div class="miniDef" style="margin-top:10px;">
-        <b>Gap Types (students learn these here)</b>
+        <b>Types of Research Gaps</b>
+
         <div class="def">
-          <span class="tag">Theoretical gap</span> Missing concept, mechanism, or explanation; unclear “why/how.”
+          <span class="tag">Theoretical gap</span>
+          A theoretical gap exists when current studies describe relationships or patterns but do not clearly explain the underlying mechanisms or concepts that drive those patterns.
+          <br><br>
+          Students should look for situations where research answers “what is happening” but not “why or how it happens.”
+          <br><br>
+          Examples include missing variables, unclear theoretical explanations, or lack of testing of proposed mechanisms.
         </div>
+
         <div class="def">
-          <span class="tag">Contextual gap</span> Missing population/setting/time; unclear “for whom/where/when.”
+          <span class="tag">Contextual gap</span>
+          A contextual gap exists when existing research findings may not apply across different populations, locations, time periods, or environments.
+          <br><br>
+          Students should look for situations where research results differ depending on who is studied, where the study is conducted, or when data was collected.
+          <br><br>
+          Examples include differences between rural and urban populations, different industries, generational differences, or outdated datasets.
         </div>
+
         <div class="def">
-          <span class="tag">Methodological gap</span> Weak/limited methods or measures; unclear “how well we know.”
+          <span class="tag">Methodological gap</span>
+          A methodological gap exists when current studies use research designs, measurements, or procedures that limit confidence in their conclusions.
+          <br><br>
+          Students should look for evidence showing weaknesses such as cross-sectional surveys, weak measurement tools, missing comparison groups, or failure to capture important processes.
+          <br><br>
+          These gaps often indicate the need for stronger research designs such as longitudinal, experimental, or mixed-method approaches.
         </div>
       </div>
 
       <div class="twistBox" id="twistBox">
-        <b>🚨 Twist unlocked (10-minute mark)</b>
+        <b>🚨 Twist unlocked</b>
         <p class="small" id="twistText"></p>
         <button class="secondary" onclick="addTwistCards()">Add Twist Evidence</button>
       </div>
@@ -195,14 +213,14 @@
         <div class="bucket" ondragover="bucketOver(event)" ondragleave="bucketLeave(event)" ondrop="dropToBucket(event, 'methods')">
           <div class="bucketTitle"><b>🧪 Method / Measurement Limits</b><span class="pill" id="countM">0</span></div>
           <div class="bucketInner" id="innerM"></div>
-          <p class="hint">Evidence showing design weaknesses (cross-sectional, weak measures, missing comparisons).</p>
+          <p class="hint">Evidence showing design weaknesses (cross-sectional, weak measures, missing comparisons, missing process data).</p>
         </div>
       </div>
 
       <hr>
 
-      <h2>Final Outputs (Click Only)</h2>
-      <p>This is the RRL “deliverable”: tentative answer + gap type(s) + pinned evidence.</p>
+      <h2>Final Outputs</h2>
+      <p>Choose a tentative answer + gap type(s), then pin evidence to justify your reasoning.</p>
 
       <h3>Tentative Answer</h3>
       <div class="choices" id="answerChoices"></div>
@@ -224,7 +242,9 @@
 <script>
 /** ========= Timing ========= */
 const TOTAL_SECONDS = 20 * 60;
-const TWIST_UNLOCK_AT_REMAINING = 10 * 60; // unlock when remaining hits 10:00
+// Twist unlock at 5-minute mark (remaining time hits 05:00)
+const TWIST_UNLOCK_AT_REMAINING = 5 * 60;
+
 let remaining = TOTAL_SECONDS;
 let timer = null;
 let started = false;
@@ -235,15 +255,10 @@ let twistUnlocked = false;
 let twistAdded = false;
 let answerPick = null;
 let gapTypePicks = new Set();
-let pinned = new Set(); // card ids
+let pinned = new Set();
 let score = 0;
 
-/** ========= Cases =========
- * Evidence cards include:
- * - role tags: supports A/B, boundary/context, methods
- * - gapHints: theoretical/contextual/methodological (what they teach)
- * Cards can have multiple roles & multiple gapHints (ambiguity is realistic).
- */
+/** ========= Cases ========= */
 const CASES = [
   {
     id: "socialmedia",
@@ -252,8 +267,8 @@ const CASES = [
     problem: "The college wants evidence-based guidance. Based on existing studies, what is the most reasonable tentative answer about social media and academic performance, and what gap should a new study address?",
     claimA: "Claim A: More social media use is linked to lower academic performance.",
     claimB: "Claim B: Social media use is not always harmful; effects depend on how it is used and context.",
-    answerKey: "MIXED_DEPENDS", // used for scoring
-    gapKey: ["CONTEXTUAL","METHODOLOGICAL"], // what good students should identify most
+    answerKey: "MIXED_DEPENDS",
+    gapKey: ["CONTEXTUAL","METHODOLOGICAL"],
     cards: [
       { id:"S1", title:"Study 1 (College Survey)", text:"Higher daily use correlates with lower GPA among college students.", roles:["claimA"], gapHints:["METHODOLOGICAL"], meta:["Cross-sectional correlation"] },
       { id:"S2", title:"Study 2 (Private Universities)", text:"No significant link found in private universities; results differ from other samples.", roles:["claimB","boundary"], gapHints:["CONTEXTUAL"], meta:["Context: private-only"] },
@@ -380,7 +395,7 @@ function loadCase(caseId){
   clearBoardAndTray();
   el("twistBox").classList.remove("show");
 
-  // add initial evidence to tray immediately (so they can start interacting right away)
+  // add initial evidence to tray immediately
   activeCase.cards.forEach(addCardToTray);
 
   // render choices
@@ -445,7 +460,7 @@ function togglePin(cardId){
   updateMetrics();
 }
 
-/** ========= Drag & drop buckets (not graded as “right/wrong”) ========= */
+/** ========= Drag & drop ========= */
 function allowDrop(e){ e.preventDefault(); }
 function bucketOver(e){ e.preventDefault(); e.currentTarget.classList.add("dragover"); }
 function bucketLeave(e){ e.currentTarget.classList.remove("dragover"); }
@@ -458,20 +473,14 @@ function dropToTray(e){
   el("tray").appendChild(cardEl);
   updateCounts();
 }
-function dropToBucket(e, bucket){
+function dropToBucket(e, which){
   e.preventDefault();
   e.currentTarget.classList.remove("dragover");
   const id = e.dataTransfer.getData("text/plain");
   const cardEl = el("card_"+id);
   if (!cardEl) return;
 
-  const dest = {
-    claimA: el("innerA"),
-    claimB: el("innerB"),
-    boundary: el("innerC"),
-    methods: el("innerM"),
-  }[bucket];
-
+  const dest = {claimA:el("innerA"),claimB:el("innerB"),boundary:el("innerC"),methods:el("innerM")}[which];
   dest.appendChild(cardEl);
   updateCounts();
 }
@@ -489,13 +498,12 @@ function renderAnswerChoices(){
   const wrap = el("answerChoices");
   wrap.innerHTML = "";
 
-  // Universal answer options (click only)
   const options = [
-    { id:"A_TRUE", label:"Tentative Answer: Claim A is mostly supported", desc:"Most evidence supports Claim A; limited boundary/method issues." },
-    { id:"B_TRUE", label:"Tentative Answer: Claim B is mostly supported", desc:"Evidence suggests effects depend on conditions (context/type/constraints)." },
-    { id:"MIXED_DEPENDS", label:"Tentative Answer: Mixed results, depends on context", desc:"Studies conflict; boundary conditions explain why findings differ." },
-    { id:"INSUFFICIENT", label:"Tentative Answer: Evidence is insufficient for a clear conclusion", desc:"Too many method/measurement limitations to confidently conclude." },
-    { id:"BOTH_TRUE_PROCESS_GAP", label:"Tentative Answer: Both can be true; process determines inclusion/exclusion", desc:"Some benefit exists, but process barriers exclude certain groups." },
+    { id:"A_TRUE", label:"Claim A is mostly supported", desc:"Most evidence points to Claim A, with few boundary/method issues." },
+    { id:"B_TRUE", label:"Claim B is mostly supported", desc:"Evidence suggests effects depend on conditions (context/type/constraints)." },
+    { id:"MIXED_DEPENDS", label:"Mixed results, depends on context", desc:"Studies conflict; boundary conditions help explain differences." },
+    { id:"INSUFFICIENT", label:"Evidence is insufficient for a clear conclusion", desc:"Too many method/measurement limitations to conclude confidently." },
+    { id:"BOTH_TRUE_PROCESS_GAP", label:"Both can be true; the process determines outcomes", desc:"Some benefit exists, but process barriers exclude certain groups." },
   ];
 
   options.forEach(o=>{
@@ -507,7 +515,6 @@ function renderAnswerChoices(){
     wrap.appendChild(div);
   });
 }
-
 function pickAnswer(id){
   answerPick = id;
   [...document.querySelectorAll("#answerChoices .choice")].forEach(x=>x.classList.remove("selected"));
@@ -546,46 +553,78 @@ function toggleGapType(id){
   updateMetrics();
 }
 
-/** ========= Scoring (coherence-based, not strict classification) ========= */
-function computeScore(){
-  if (!activeCase) return 0;
+/** ========= Scoring (coherence-based) ========= */
+function computeScoreBreakdown(){
+  if (!activeCase){
+    return { total:0, pinScore:0, answerScore:0, gapScore:0, coherenceBonus:0, twistBonus:0, gapMatches:0, breakdownLines:[] };
+  }
 
-  // Evidence-based heuristics:
-  // - Encourage pinning
-  // - Encourage picking answer that matches case answerKey
-  // - Encourage choosing gap types that match case gapKey
-  // - Encourage having enough “methods” or “boundary” cards if claiming insufficient/depends
-  let s = 0;
+  let breakdown = [];
+  let total = 0;
 
-  // Pinning is important in RRL: evidence-backed arguments
-  s += Math.min(pinned.size * 6, 36); // up to +36
+  // Evidence pins
+  const pinScore = Math.min(pinned.size * 6, 36);
+  total += pinScore;
+  breakdown.push(`Evidence support: ${pinScore} points (Pinned ${pinned.size} evidence cards)`);
 
   // Answer alignment
+  let answerScore = 0;
   if (answerPick){
-    if (answerPick === activeCase.answerKey) s += 30;
-    else s += 12; // they can still score for a plausible alternative
+    if (answerPick === activeCase.answerKey){
+      answerScore = 30;
+      breakdown.push(`Tentative answer: 30 points (Best-supported synthesis for this case)`);
+    } else {
+      answerScore = 12;
+      breakdown.push(`Tentative answer: 12 points (Plausible, but not the strongest synthesis given the evidence)`);
+    }
+  } else {
+    breakdown.push(`Tentative answer: 0 points (No answer selected)`);
   }
+  total += answerScore;
 
-  // Gap alignment (can be multiple)
+  // Gap alignment
   const key = new Set(activeCase.gapKey);
-  let matches = 0;
-  gapTypePicks.forEach(g=>{ if (key.has(g)) matches += 1; });
-  s += matches * 15; // up to +30
+  let gapMatches = 0;
+  gapTypePicks.forEach(g=>{ if (key.has(g)) gapMatches++; });
+  const gapScore = gapMatches * 15;
+  total += gapScore;
+  breakdown.push(`Gap identification: ${gapScore} points (${gapMatches} strong gap type matches)`);
 
-  // Support coherence: if they chose "INSUFFICIENT", having more method-limit cards sorted helps
-  const methodCount = el("innerM").children.length;
+  // Coherence bonus
+  let coherenceBonus = 0;
   const boundaryCount = el("innerC").children.length;
-  if (answerPick === "INSUFFICIENT") s += Math.min(methodCount * 3, 15);
-  if (answerPick === "MIXED_DEPENDS") s += Math.min(boundaryCount * 3, 15);
-  if (answerPick === "BOTH_TRUE_PROCESS_GAP") s += Math.min(boundaryCount * 2, 10);
+  const methodCount = el("innerM").children.length;
 
-  // Twist bonus if unlocked and at least 1 twist card pinned (teaches updating synthesis)
+  if (answerPick === "INSUFFICIENT"){
+    coherenceBonus = Math.min(methodCount * 3, 15);
+  }
+  if (answerPick === "MIXED_DEPENDS"){
+    coherenceBonus = Math.min(boundaryCount * 3, 15);
+  }
+  if (answerPick === "BOTH_TRUE_PROCESS_GAP"){
+    coherenceBonus = Math.min(boundaryCount * 2, 10);
+  }
+  if (coherenceBonus > 0){
+    breakdown.push(`Synthesis coherence bonus: ${coherenceBonus} points`);
+  }
+  total += coherenceBonus;
+
+  // Twist bonus
+  let twistBonus = 0;
   if (twistUnlocked){
     const pinnedTwist = [...pinned].some(id=>id.startsWith("ST") || id.startsWith("DT"));
-    if (pinnedTwist) s += 10;
+    if (pinnedTwist){
+      twistBonus = 10;
+      breakdown.push(`Twist integration bonus: 10 points`);
+      total += twistBonus;
+    }
   }
 
-  return s;
+  return { total, pinScore, answerScore, gapScore, coherenceBonus, twistBonus, gapMatches, breakdownLines: breakdown };
+}
+
+function computeScore(){
+  return computeScoreBreakdown().total;
 }
 
 function updateMetrics(){
@@ -605,9 +644,8 @@ function submit(){
   if (pinned.size < 2){ toast("⚠️ Pin at least 2 evidence cards to support your answer."); return; }
 
   const team = (el("teamName").value||"").trim() || "Unnamed Team";
-  const total = computeScore();
+  const { total, breakdownLines } = computeScoreBreakdown();
   const code = makeCode(team, total);
-
   const gapList = [...gapTypePicks].join(", ");
 
   el("result").style.display = "block";
@@ -619,7 +657,11 @@ function submit(){
       <b>Tentative answer:</b> ${escapeHTML(answerPick)}<br>
       <b>Gap type(s):</b> ${escapeHTML(gapList)}<br>
       <b>Pinned evidence:</b> ${escapeHTML([...pinned].join(", "))}<br>
-      <b>Score:</b> ${total}<br>
+      <b>Total Score:</b> ${total}<br><br>
+
+      <b>Score Breakdown</b><br>
+      ${breakdownLines.map(b=>`• ${escapeHTML(b)}`).join("<br>")}<br><br>
+
       <b>Shareable Code:</b> <span class="mono">${code}</span><br>
       <span class="hint">Send this code (or screenshot) to your instructor.</span>
     </div>
@@ -627,29 +669,26 @@ function submit(){
   el("result").scrollIntoView({behavior:"smooth", block:"start"});
 }
 
-function makeCode(team, total){
-  const base = `${team}|${activeCase.id}|${total}|${Date.now()}`;
-  let hash = 0;
-  for (let i=0;i<base.length;i++){ hash = (hash*31 + base.charCodeAt(i)) >>> 0; }
-  return `${activeCase.id.toUpperCase()}-${total}-${String(hash).slice(0,6)}`;
-}
-
 /** ========= Hint ========= */
 function hint(){
   if (!activeCase){ toast("Hint: Load a random case."); return; }
   if (!answerPick){
-    toast("Hint: Look at patterns. If evidence conflicts, choose a 'mixed/depends' answer and pin boundary evidence.");
+    toast("Hint: Choose a tentative answer. If evidence conflicts, try 'Mixed results' or 'Both can be true'.");
     return;
   }
   if (gapTypePicks.size === 0){
-    toast("Hint: Choose gap type(s). Method-limit cards push methodological gaps; population/time/context cards push contextual gaps; missing mechanism cards push theoretical gaps.");
+    toast("Hint: Select gap type(s). Method-limit cards point to methodological gaps; population/time/context cards point to contextual gaps; missing mechanisms point to theoretical gaps.");
     return;
   }
   if (pinned.size < 2){
-    toast("Hint: Pin at least 2 cards that directly support your chosen answer and gap type(s).");
+    toast("Hint: Pin at least 2 evidence cards that directly support your answer and gap type(s).");
     return;
   }
-  toast("Hint: Improve score by pinning twist evidence (after unlock) and making your answer consistent with the evidence pattern.");
+  if (twistUnlocked && !twistAdded){
+    toast("Hint: Twist is unlocked. Add twist evidence and pin at least one twist card for a bonus.");
+    return;
+  }
+  toast("Hint: Improve score by pinning stronger evidence and matching your synthesis to the overall pattern of studies.");
 }
 
 /** ========= Reset ========= */
@@ -665,7 +704,6 @@ function clearBoardAndTray(){
 }
 function resetAll(){
   if (timer) clearInterval(timer);
-  // simplest reliable reset for a class activity:
   location.reload();
 }
 
@@ -677,24 +715,104 @@ function toast(html){
   t.scrollIntoView({behavior:"smooth", block:"start"});
 }
 
+/** ========= Case loading + timer auto-start ========= */
+function assignRandomCase(){
+  if (started) { toast("⚠️ Game already started. Reset to load a new case."); return; }
+  const idx = Math.floor(Math.random()*CASES.length);
+  loadCase(CASES[idx].id);
+}
+function loadCase(caseId){
+  activeCase = CASES.find(c=>c.id===caseId);
+
+  // reset state
+  twistUnlocked = false; twistAdded = false;
+  answerPick = null; gapTypePicks = new Set();
+  pinned = new Set(); score = 0;
+  remaining = TOTAL_SECONDS;
+  if (timer) clearInterval(timer);
+  started = false;
+
+  // render case info
+  el("caseTitle").textContent = activeCase.title;
+  el("caseSubtitle").textContent = activeCase.subtitle;
+  el("problemText").textContent = activeCase.problem;
+  el("claimAText").textContent = activeCase.claimA;
+  el("claimBText").textContent = activeCase.claimB;
+
+  // clear UI
+  clearBoardAndTray();
+  el("twistBox").classList.remove("show");
+
+  // add initial evidence to tray
+  activeCase.cards.forEach(addCardToTray);
+
+  // render choices
+  renderAnswerChoices();
+  renderGapChoices();
+
+  // enable submit once case is loaded
+  el("submitBtn").disabled = false;
+
+  // timer auto-start
+  startTimerIfNeeded();
+  toast("✅ Case loaded. Timer started. Sort evidence, pin key evidence, then choose a tentative answer + gap types.");
+}
+
+function startTimerIfNeeded(){
+  if (started) return;
+  started = true;
+
+  timer = setInterval(()=>{
+    remaining -= 1;
+
+    if (!twistUnlocked && remaining <= TWIST_UNLOCK_AT_REMAINING){
+      unlockTwist();
+    }
+    if (remaining <= 0){
+      remaining = 0;
+      endGame();
+    }
+    updateTimers();
+  }, 1000);
+
+  updateTimers();
+}
+
+function updateTimers(){
+  el("gameTimer").textContent = fmt(remaining);
+  if (!twistUnlocked){
+    const untilTwist = Math.max(remaining - TWIST_UNLOCK_AT_REMAINING, 0);
+    el("twistTimer").textContent = fmt(untilTwist);
+  } else {
+    el("twistTimer").textContent = "UNLOCKED";
+  }
+}
+
+function unlockTwist(){
+  twistUnlocked = true;
+  el("twistText").textContent = activeCase.twist.text;
+  el("twistBox").classList.add("show");
+  toast("🚨 Twist unlocked. Add the new evidence and reconsider your tentative answer and gaps.");
+}
+
+function addTwistCards(){
+  if (!twistUnlocked || twistAdded) return;
+  activeCase.twist.cards.forEach(addCardToTray);
+  twistAdded = true;
+  toast("✅ Twist evidence added.");
+}
+
+/** ========= Utilities ========= */
+function makeCode(team, total){
+  const base = `${team}|${activeCase.id}|${total}|${Date.now()}`;
+  let hash = 0;
+  for (let i=0;i<base.length;i++){ hash = (hash*31 + base.charCodeAt(i)) >>> 0; }
+  return `${activeCase.id.toUpperCase()}-${total}-${String(hash).slice(0,6)}`;
+}
+
 /** ========= Initial timer display ========= */
 el("gameTimer").textContent = fmt(remaining);
-el("twistTimer").textContent = fmt(TWIST_UNLOCK_AT_REMAINING);
-
-/** ========= Enable dragging targets ========= */
-el("tray").addEventListener("dragover", allowDrop);
-
-/** ========= Make buckets accept drops ========= */
-function dropToBucket(e, which){
-  e.preventDefault();
-  e.currentTarget.classList.remove("dragover");
-  const id = e.dataTransfer.getData("text/plain");
-  const cardEl = el("card_"+id);
-  if (!cardEl) return;
-  const dest = {claimA:el("innerA"),claimB:el("innerB"),boundary:el("innerC"),methods:el("innerM")}[which];
-  dest.appendChild(cardEl);
-  updateCounts();
-}
+el("twistTimer").textContent = fmt(TOTAL_SECONDS - TWIST_UNLOCK_AT_REMAINING);
 </script>
 </body>
 </html>
